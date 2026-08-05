@@ -19,6 +19,9 @@ package org.apache.pdfbox.glyphlayout.fop;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.Bidi;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import org.apache.fop.fonts.Font;
 
@@ -125,45 +128,53 @@ public class GlyphLayoutProcessorFop implements GlyphLayoutProcessorInterface
     }
 
     /**
-     * Computes glyph positioning
-     *
-     * @param font to be used
-     * @param fontSize font size
-     * @param text text to show
-     * @param bidiLevel
+     * Class for text and Bidi-Level
      */
-    protected GlyphMapping computeGlyphAndPositions(PDType0Font font, float fontSize, String text, int bidiLevel)
-    {
-        Objects.requireNonNull(font, "Font must be set");
-        Objects.requireNonNull(text, "Text must be set");
+    protected static class TextAndBidiLevel {
+        private final String text;
+        private final int bidiLevel;
 
-        MultiByteFont mbf = glyphLayoutFontLoaderFop.getFopFont(font);
+        TextAndBidiLevel(String text, int bidiLevel){
+            this.text = text;
+            this.bidiLevel = bidiLevel;
+        }
 
-        checkMissingGlyphs(text, mbf);
+        public String getText() {
+            return text;
+        }
 
-        MinOptMax letterSpaceIPD = MinOptMax.getInstance(0);
-        MinOptMax[] letterSpaceAdjustArray = new MinOptMax[text.length()];
-
-        org.apache.fop.fonts.Font fopFont = new Font(mbf.getFontName(), null, mbf, (int) (fontSize * FOP_FONTSIZE_FACTOR));
-
-        return GlyphMapping.doGlyphMapping(
-                new FopStringTextFragment(text), 0, text.length() - 1, fopFont,
-                letterSpaceIPD, letterSpaceAdjustArray, ' ',
-                ' ', //?
-                false, bidiLevel, false, true, false);
+        public int getBidiLevel() {
+            return bidiLevel;
+        }
     }
 
     /**
-     * Converts the codepoints of the text to glyph ids
-     *
-     * @param font the font to be used
-     * @param text the text to be converted
-     * @return glyph ids with respect to font
+     * Compute the string width for a unidirectional string
+     * @param font to be used
+     * @param fontSize font size
+     * @param text text
+     * @param bidiLevel Bidi Level
+     * @return string width
      */
-    protected int[] convertCharsToGlyphIds(PDType0Font font, String text)
-    {
-        MultiByteFont mbf = glyphLayoutFontLoaderFop.getFopFont(font);
-        return text.codePoints().map(mbf::findGlyphIndex).toArray();
+    protected float getStringWidthUni(PDType0Font font, float fontSize, String text, int bidiLevel) throws IOException {
+        GlyphMapping glyphMapping = computeGlyphAndPositions(font, fontSize, text, bidiLevel);
+        return font.getStringWidth(glyphMapping.mapping);
+    }
+
+    /**
+     * Compute the width for a text
+     * @param font to be used
+     * @param fontSize font size
+     * @param text text
+     * @return string width
+     */
+    public float getStringWidth(PDType0Font font, float fontSize, String text) throws IOException {
+        float width = 0f;
+        List<TextAndBidiLevel> textAndBidiLevels = doBidiSplittingAndReordering(text);
+        for (TextAndBidiLevel textAndBidiLevel:  textAndBidiLevels) {
+            width += getStringWidthUni(font, fontSize, textAndBidiLevel.getText(), textAndBidiLevel.getBidiLevel());
+        }
+        return width;
     }
 
     /**
@@ -173,12 +184,28 @@ public class GlyphLayoutProcessorFop implements GlyphLayoutProcessorInterface
      * @param font to be used
      * @param fontSize font size
      * @param text text to show
+     *
      * @throws IOException if an I/O exception occurs
      * @throws IllegalArgumentException if glyphs are missing
      */
     @Override
-    public void showText(ContentStreamForGlyphLayoutInterface contentStream, PDType0Font font, float fontSize, String text) throws IOException
+    public void showText(ContentStreamForGlyphLayoutInterface contentStream, PDType0Font font, float fontSize, String text)
+            throws IOException {
+        List<TextAndBidiLevel> textAndBidiLevels = doBidiSplittingAndReordering(text);
+        for (TextAndBidiLevel textAndBidiLevel:  textAndBidiLevels) {
+            showTextUni(contentStream, font, fontSize, textAndBidiLevel.getText(), textAndBidiLevel.getBidiLevel());
+        }
+    }
+
+    /**
+     * Do Bidi splitting and reordering
+     * @param text text
+     * @return list of texts and bidi levels
+     */
+    protected List<TextAndBidiLevel> doBidiSplittingAndReordering(String text)
     {
+        ArrayList<TextAndBidiLevel> textAndBidiLevels = new ArrayList<>();
+
         Objects.requireNonNull(text, "Text must be set");
 
         if (Bidi.requiresBidi(text.toCharArray(), 0, text.length()))
@@ -207,24 +234,82 @@ public class GlyphLayoutProcessorFop implements GlyphLayoutProcessorInterface
                     int start = bidi.getRunStart(index);
                     int limit = bidi.getRunLimit(index);
                     int bidiLevel = levels[index];
-
-                    // Map to correct value for GlyphMapping.doGlyphMapping
-                    // 0 LTR equal in java.text.Bidi and org.apache.fop.traits.Direction
-                    // 1 RTL equal in java.text.Bidi and org.apache.fop.traits.Direction
-                    bidiLevel = bidiLevel % 2; // even LTR, odd RTL
                     String part = text.substring(start, limit);
-                    showTextUni(contentStream, font, fontSize, part, bidiLevel);
+                    textAndBidiLevels.add(new TextAndBidiLevel(part, bidiLevel));
                 }
             }
             else
             {
-                showTextUni(contentStream, font, fontSize, text, bidi.getBaseLevel());
+                textAndBidiLevels.add(new TextAndBidiLevel(text, bidi.getBaseLevel()));
             }
         }
         else
         {
-            showTextUni(contentStream, font, fontSize, text, Bidi.DIRECTION_LEFT_TO_RIGHT);
+            textAndBidiLevels.add(new TextAndBidiLevel(text, Bidi.DIRECTION_LEFT_TO_RIGHT));
         }
+        return Collections.unmodifiableList(textAndBidiLevels);
+    }
+
+    /**
+     * Computes glyph positioning
+     *
+     * @param font to be used
+     * @param fontSize font size
+     * @param text text to show
+     * @param bidiLevel
+     */
+    protected GlyphMapping computeGlyphAndPositions(PDType0Font font, float fontSize, String text, int bidiLevel)
+    {
+        Objects.requireNonNull(font, "Font must be set");
+        Objects.requireNonNull(text, "Text must be set");
+
+        MultiByteFont mbf = glyphLayoutFontLoaderFop.getFopFont(font);
+
+        checkMissingGlyphs(text, mbf);
+
+        MinOptMax letterSpaceIPD = MinOptMax.getInstance(0);
+        MinOptMax[] letterSpaceAdjustArray = new MinOptMax[text.length()];
+
+        org.apache.fop.fonts.Font fopFont = new Font(mbf.getFontName(), null, mbf, (int) (fontSize * FOP_FONTSIZE_FACTOR));
+
+        GlyphMapping glyphMapping = GlyphMapping.doGlyphMapping(
+                new FopStringTextFragment(text), 0, text.length() - 1, fopFont,
+                letterSpaceIPD, letterSpaceAdjustArray, ' ',
+                ' ', //?
+                false, bidiLevel, false, true, false);
+
+        if (glyphMapping.mapping == null) {
+            glyphMapping.mapping = text;
+        }
+        if (glyphMapping.gposAdjustments == null) { XXX
+            int[][] zeroGpa = createZeroGpa(text.length());
+            glyphMapping.gposAdjustments = new int[text.length()][];
+            for (int i=0; i<zeroGpa.length; i++) {
+                glyphMapping.gposAdjustments[i] = zeroGpa[i];
+            }
+        }
+        if (bidiLevel == Bidi.DIRECTION_RIGHT_TO_LEFT)
+        {
+            int[][] reversedGpa = reverseGpa(glyphMapping.gposAdjustments);
+            for (int i=0; i<reversedGpa.length; i++) {
+                glyphMapping.gposAdjustments[i] = reversedGpa[i];
+            }
+            glyphMapping.mapping = new StringBuilder(glyphMapping.mapping).reverse().toString();
+        }
+    return glyphMapping;
+    }
+
+    /**
+     * Converts the codepoints of the text to glyph ids
+     *
+     * @param font the font to be used
+     * @param text the text to be converted
+     * @return glyph ids with respect to font
+     */
+    protected int[] convertCharsToGlyphIds(PDType0Font font, String text)
+    {
+        MultiByteFont mbf = glyphLayoutFontLoaderFop.getFopFont(font);
+        return text.codePoints().map(mbf::findGlyphIndex).toArray();
     }
 
     /**
@@ -245,16 +330,8 @@ public class GlyphLayoutProcessorFop implements GlyphLayoutProcessorInterface
         Objects.requireNonNull(contentStream, "contentStream must be set");
 
         GlyphMapping glyphMapping = computeGlyphAndPositions(font, fontSize, text, bidiLevel);
-
-        text = glyphMapping.mapping == null ? text : glyphMapping.mapping;
-
-        int[][] gpa = glyphMapping.gposAdjustments != null ? glyphMapping.gposAdjustments : createZeroGpa(text.length());
-
-        if (bidiLevel == Bidi.DIRECTION_RIGHT_TO_LEFT)
-        {
-            gpa = reverseGpa(gpa);
-            text = new StringBuilder(text).reverse().toString();
-        }
+        text = glyphMapping.mapping;
+        int[][] gpa = glyphMapping.gposAdjustments;
         int[] glyphIds = convertCharsToGlyphIds(font, text);
 
         if (glyphIds.length != text.length())

@@ -201,7 +201,7 @@ public class GlyphLayoutProcessorAwt implements GlyphLayoutProcessorInterface
     /**
      * Class for text and Bidi-Level
      */
-    public static class TextAndBidiLevel {
+    protected static class TextAndBidiLevel {
         private final String text;
         private final int bidiLevel;
 
@@ -235,10 +235,10 @@ public class GlyphLayoutProcessorAwt implements GlyphLayoutProcessorInterface
     }
 
     /**
-     * Compute the string width for a string
-     * @param font
-     * @param fontSize
-     * @param text
+     * Compute the width for a text
+     * @param font to be used
+     * @param fontSize font size
+     * @param text text
      * @return string width
      */
     public float getStringWidth(PDType0Font font, float fontSize, String text)
@@ -276,7 +276,7 @@ public class GlyphLayoutProcessorAwt implements GlyphLayoutProcessorInterface
      * @return
      * @throws IOException
      */
-    public List<TextAndBidiLevel> doBidiSplittingAndReordering(String text)
+    protected List<TextAndBidiLevel> doBidiSplittingAndReordering(String text)
     {
         ArrayList<TextAndBidiLevel> textAndBidiLevels = new ArrayList<>();
 
