@@ -158,7 +158,7 @@ public class GlyphLayoutProcessorFop implements GlyphLayoutProcessorInterface
      * @return string width
      */
     protected float getStringWidthUni(PDType0Font font, float fontSize, String text, int bidiLevel) throws IOException {
-        TextAndGpa textAndGpa = computeGlyphAndPositions(font, fontSize, text, bidiLevel);
+        TextAndGpa textAndGpa = computeGlyphsAndPositions(font, fontSize, text, bidiLevel);
         return font.getStringWidth(textAndGpa.getText());
     }
 
@@ -283,7 +283,7 @@ public class GlyphLayoutProcessorFop implements GlyphLayoutProcessorInterface
      * @param text text to show
      * @param bidiLevel
      */
-    protected TextAndGpa computeGlyphAndPositions(PDType0Font font, float fontSize, String text, int bidiLevel)
+    protected TextAndGpa computeGlyphsAndPositions(PDType0Font font, float fontSize, String text, int bidiLevel)
     {
         Objects.requireNonNull(font, "Font must be set");
         Objects.requireNonNull(text, "Text must be set");
@@ -345,7 +345,7 @@ public class GlyphLayoutProcessorFop implements GlyphLayoutProcessorInterface
         Objects.requireNonNull(text, "Text must be set");
         Objects.requireNonNull(contentStream, "contentStream must be set");
 
-        TextAndGpa textAndGpa = computeGlyphAndPositions(font, fontSize, text, bidiLevel);
+        TextAndGpa textAndGpa = computeGlyphsAndPositions(font, fontSize, text, bidiLevel);
         text = textAndGpa.getText();
         int[][] gpa = textAndGpa.getGpa();
         boolean hasPositioning = textAndGpa.hasPositioning();
