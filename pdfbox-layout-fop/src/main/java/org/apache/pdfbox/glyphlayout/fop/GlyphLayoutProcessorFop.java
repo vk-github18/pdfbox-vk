@@ -307,7 +307,7 @@ public class GlyphLayoutProcessorFop implements GlyphLayoutProcessorInterface
         boolean positioning = glyphMapping.gposAdjustments != null;
         int[][] gpa = positioning ? glyphMapping.gposAdjustments : createZeroGpa(text.length());
 
-        if (bidiLevel == Bidi.DIRECTION_RIGHT_TO_LEFT)
+        if (bidiLevel % 2 == Bidi.DIRECTION_RIGHT_TO_LEFT)
         {
             gpa = reverseGpa(gpa);
             text = new StringBuilder(text).reverse().toString();
