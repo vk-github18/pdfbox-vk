@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.Bidi;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -253,18 +254,24 @@ public class GlyphLayoutProcessorFop implements GlyphLayoutProcessorInterface
     protected static class TextAndGpa {
         private final String text;
         private final int[][] gpa;
+        private final boolean positioning;
 
-        public TextAndGpa(String text, int[][] gpa) {
+        public TextAndGpa(String text, boolean positioning, int[][] gpa) {
             this.text = text;
             this.gpa = gpa;
-        }
-
-        public int[][] getGpa() {
-            return gpa;
+            this.positioning = positioning;
         }
 
         public String getText() {
             return text;
+        }
+
+        public boolean hasPositioning() {
+            return positioning;
+        }
+
+        public int[][] getGpa() {
+            return gpa;
         }
     }
 
@@ -297,14 +304,15 @@ public class GlyphLayoutProcessorFop implements GlyphLayoutProcessorInterface
                 false, bidiLevel, false, true, false);
 
         text = glyphMapping.mapping != null ? glyphMapping.mapping : text;
-        int[][] gpa = glyphMapping.gposAdjustments != null ? glyphMapping.gposAdjustments : createZeroGpa(text.length());
+        boolean positioning = glyphMapping.gposAdjustments != null;
+        int[][] gpa = positioning ? glyphMapping.gposAdjustments : createZeroGpa(text.length());
 
         if (bidiLevel == Bidi.DIRECTION_RIGHT_TO_LEFT)
         {
             gpa = reverseGpa(gpa);
             text = new StringBuilder(text).reverse().toString();
         }
-        return new TextAndGpa(text, gpa);
+        return new TextAndGpa(text, positioning, gpa);
     }
 
     /**
@@ -344,16 +352,13 @@ public class GlyphLayoutProcessorFop implements GlyphLayoutProcessorInterface
         int[] glyphIds = convertCharsToGlyphIds(font, text);
 
 
-        if (glyphIds.length != text.length())
+        if (glyphIds.length != text.length() && hasPositioning)
         {
-            if (hasPositioning)
-            {
-                // This case:
-                // letters from the supplementary multilingual plane AND position adjustments
-                // is not implemented
-                throw new IllegalStateException("glyphIds.length != text.length() and gposAdjustments!=null"
-                        + glyphIds.length + " " + text.length() + " " + text);
-            }
+            // This case:
+            // letters from the supplementary multilingual plane AND position adjustments
+            // is not implemented
+            throw new IllegalStateException("glyphIds.length != text.length() and gposAdjustments!=null"
+                    + glyphIds.length + " " + text.length() + " " + text);
         }
 
         final float delta = Math.ulp(fontSize); // do only adjustments bigger than or equal to one ulp of the font size
@@ -418,10 +423,7 @@ public class GlyphLayoutProcessorFop implements GlyphLayoutProcessorInterface
     {
         int[][] gpa = new int[length][];
         int[] z4 = new int[] { 0, 0, 0, 0 };
-        for (int i = 0; i < length; i++)
-        {
-            gpa[i] = z4;
-        }
+        Arrays.fill(gpa, z4);
         return gpa;
     }
 
