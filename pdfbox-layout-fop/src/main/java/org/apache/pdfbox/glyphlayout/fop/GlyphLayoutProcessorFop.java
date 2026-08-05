@@ -340,15 +340,13 @@ public class GlyphLayoutProcessorFop implements GlyphLayoutProcessorInterface
         TextAndGpa textAndGpa = computeGlyphAndPositions(font, fontSize, text, bidiLevel);
         text = textAndGpa.getText();
         int[][] gpa = textAndGpa.getGpa();
+        boolean hasPositioning = textAndGpa.hasPositioning();
         int[] glyphIds = convertCharsToGlyphIds(font, text);
+
 
         if (glyphIds.length != text.length())
         {
-            if (gpa == null) //XXX ist hier schon nicht mehr null? noch ein flag? hasPositioning
-            {
-                gpa = createZeroGpa(glyphIds.length);
-            }
-            else
+            if (hasPositioning)
             {
                 // This case:
                 // letters from the supplementary multilingual plane AND position adjustments
