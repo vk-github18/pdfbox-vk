@@ -45,7 +45,7 @@ public interface GlyphLayoutProcessorInterface
      * @param text text
      * @return string width
      */
-    float getStringWidth(PDType0Font font, float fontSize, String text);
+    float getStringWidth(PDType0Font font, float fontSize, String text) throws IOException;
 
 
     /**

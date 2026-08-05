@@ -157,8 +157,8 @@ public class GlyphLayoutProcessorFop implements GlyphLayoutProcessorInterface
      * @return string width
      */
     protected float getStringWidthUni(PDType0Font font, float fontSize, String text, int bidiLevel) throws IOException {
-        GlyphMapping glyphMapping = computeGlyphAndPositions(font, fontSize, text, bidiLevel);
-        return font.getStringWidth(glyphMapping.mapping);
+        TextAndGpa textAndGpa = computeGlyphAndPositions(font, fontSize, text, bidiLevel);
+        return font.getStringWidth(textAndGpa.getText());
     }
 
     /**
@@ -250,6 +250,24 @@ public class GlyphLayoutProcessorFop implements GlyphLayoutProcessorInterface
         return Collections.unmodifiableList(textAndBidiLevels);
     }
 
+    protected static class TextAndGpa {
+        private final String text;
+        private final int[][] gpa;
+
+        public TextAndGpa(String text, int[][] gpa) {
+            this.text = text;
+            this.gpa = gpa;
+        }
+
+        public int[][] getGpa() {
+            return gpa;
+        }
+
+        public String getText() {
+            return text;
+        }
+    }
+
     /**
      * Computes glyph positioning
      *
@@ -258,7 +276,7 @@ public class GlyphLayoutProcessorFop implements GlyphLayoutProcessorInterface
      * @param text text to show
      * @param bidiLevel
      */
-    protected GlyphMapping computeGlyphAndPositions(PDType0Font font, float fontSize, String text, int bidiLevel)
+    protected TextAndGpa computeGlyphAndPositions(PDType0Font font, float fontSize, String text, int bidiLevel)
     {
         Objects.requireNonNull(font, "Font must be set");
         Objects.requireNonNull(text, "Text must be set");
@@ -278,25 +296,15 @@ public class GlyphLayoutProcessorFop implements GlyphLayoutProcessorInterface
                 ' ', //?
                 false, bidiLevel, false, true, false);
 
-        if (glyphMapping.mapping == null) {
-            glyphMapping.mapping = text;
-        }
-        if (glyphMapping.gposAdjustments == null) { XXX
-            int[][] zeroGpa = createZeroGpa(text.length());
-            glyphMapping.gposAdjustments = new int[text.length()][];
-            for (int i=0; i<zeroGpa.length; i++) {
-                glyphMapping.gposAdjustments[i] = zeroGpa[i];
-            }
-        }
+        text = glyphMapping.mapping != null ? glyphMapping.mapping : text;
+        int[][] gpa = glyphMapping.gposAdjustments != null ? glyphMapping.gposAdjustments : createZeroGpa(text.length());
+
         if (bidiLevel == Bidi.DIRECTION_RIGHT_TO_LEFT)
         {
-            int[][] reversedGpa = reverseGpa(glyphMapping.gposAdjustments);
-            for (int i=0; i<reversedGpa.length; i++) {
-                glyphMapping.gposAdjustments[i] = reversedGpa[i];
-            }
-            glyphMapping.mapping = new StringBuilder(glyphMapping.mapping).reverse().toString();
+            gpa = reverseGpa(gpa);
+            text = new StringBuilder(text).reverse().toString();
         }
-    return glyphMapping;
+        return new TextAndGpa(text, gpa);
     }
 
     /**
@@ -329,14 +337,14 @@ public class GlyphLayoutProcessorFop implements GlyphLayoutProcessorInterface
         Objects.requireNonNull(text, "Text must be set");
         Objects.requireNonNull(contentStream, "contentStream must be set");
 
-        GlyphMapping glyphMapping = computeGlyphAndPositions(font, fontSize, text, bidiLevel);
-        text = glyphMapping.mapping;
-        int[][] gpa = glyphMapping.gposAdjustments;
+        TextAndGpa textAndGpa = computeGlyphAndPositions(font, fontSize, text, bidiLevel);
+        text = textAndGpa.getText();
+        int[][] gpa = textAndGpa.getGpa();
         int[] glyphIds = convertCharsToGlyphIds(font, text);
 
         if (glyphIds.length != text.length())
         {
-            if (glyphMapping.gposAdjustments == null)
+            if (gpa == null) //XXX ist hier schon nicht mehr null? noch ein flag? hasPositioning
             {
                 gpa = createZeroGpa(glyphIds.length);
             }
