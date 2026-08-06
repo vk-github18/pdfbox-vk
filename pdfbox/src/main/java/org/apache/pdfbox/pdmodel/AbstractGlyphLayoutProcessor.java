@@ -89,7 +89,7 @@ public abstract class AbstractGlyphLayoutProcessor implements GlyphLayoutProcess
     }
 
     /**
-     * Shows unidirectional text using positioning
+     * Shows unidirectional text using glyph positioning (if needed)
      *
      * @param contentStream the content stream
      * @param font to be used
