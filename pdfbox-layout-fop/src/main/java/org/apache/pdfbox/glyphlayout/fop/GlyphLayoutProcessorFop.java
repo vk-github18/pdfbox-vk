@@ -142,15 +142,18 @@ public class GlyphLayoutProcessorFop extends AbstractGlyphLayoutProcessor implem
     }
 
 
+    /**
+     * Internal class for text, positioning and GPA
+     */
     protected static class TextAndGpa {
         private final String text;
-        private final int[][] gpa;
         private final boolean positioning;
+        private final int[][] gpa;
 
         public TextAndGpa(String text, boolean positioning, int[][] gpa) {
             this.text = text;
-            this.gpa = gpa;
             this.positioning = positioning;
+            this.gpa = gpa;
         }
 
         public String getText() {
