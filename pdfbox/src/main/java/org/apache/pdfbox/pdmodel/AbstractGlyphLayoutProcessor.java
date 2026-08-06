@@ -114,7 +114,6 @@ public abstract class AbstractGlyphLayoutProcessor implements GlyphLayoutProcess
      * @throws IOException if an I/O exception occurs
      * @throws IllegalArgumentException if glyphs are missing
      */
-    @Override
     public void showText(ContentStreamForGlyphLayoutInterface contentStream, PDType0Font font, float fontSize, String text)
             throws IOException
     {
