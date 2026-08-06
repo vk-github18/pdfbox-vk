@@ -19,10 +19,7 @@ package org.apache.pdfbox.glyphlayout.fop;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.Bidi;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
 import org.apache.fop.fonts.Font;
 
@@ -30,6 +27,7 @@ import org.apache.fop.fonts.GlyphMapping;
 import org.apache.fop.fonts.MultiByteFont;
 import org.apache.fop.traits.MinOptMax;
 
+import org.apache.pdfbox.pdmodel.AbstractGlyphLayoutProcessor;
 import org.apache.pdfbox.pdmodel.ContentStreamForGlyphLayoutInterface;
 import org.apache.pdfbox.pdmodel.GlyphLayoutProcessorInterface;
 import org.apache.pdfbox.pdmodel.GlyphsAndPositions;
@@ -45,7 +43,7 @@ import org.apache.pdfbox.pdmodel.font.PDType0Font;
  *
  * @author Volker Kunert
  */
-public class GlyphLayoutProcessorFop implements GlyphLayoutProcessorInterface
+public class GlyphLayoutProcessorFop extends AbstractGlyphLayoutProcessor implements GlyphLayoutProcessorInterface
 {
 
     private final GlyphLayoutFontLoaderFop glyphLayoutFontLoaderFop;
@@ -128,26 +126,6 @@ public class GlyphLayoutProcessorFop implements GlyphLayoutProcessorInterface
         return glyphLayoutFontLoaderFop.loadFont(pdDocument, inputStream);
     }
 
-    /**
-     * Class for text and Bidi-Level
-     */
-    protected static class TextAndBidiLevel {
-        private final String text;
-        private final int bidiLevel;
-
-        TextAndBidiLevel(String text, int bidiLevel){
-            this.text = text;
-            this.bidiLevel = bidiLevel;
-        }
-
-        public String getText() {
-            return text;
-        }
-
-        public int getBidiLevel() {
-            return bidiLevel;
-        }
-    }
 
     /**
      * Compute the string width for a unidirectional string
@@ -157,99 +135,12 @@ public class GlyphLayoutProcessorFop implements GlyphLayoutProcessorInterface
      * @param bidiLevel Bidi Level
      * @return string width
      */
+    @Override
     protected float getStringWidthUni(PDType0Font font, float fontSize, String text, int bidiLevel) throws IOException {
         TextAndGpa textAndGpa = computeGlyphsAndPositions(font, fontSize, text, bidiLevel);
         return font.getStringWidth(textAndGpa.getText());
     }
 
-    /**
-     * Compute the width for a text
-     * @param font to be used
-     * @param fontSize font size
-     * @param text text
-     * @return string width
-     */
-    public float getStringWidth(PDType0Font font, float fontSize, String text) throws IOException {
-        float width = 0f;
-        List<TextAndBidiLevel> textAndBidiLevels = doBidiSplittingAndReordering(text);
-        for (TextAndBidiLevel textAndBidiLevel:  textAndBidiLevels) {
-            width += getStringWidthUni(font, fontSize, textAndBidiLevel.getText(), textAndBidiLevel.getBidiLevel());
-        }
-        return width;
-    }
-
-    /**
-     * Shows a text using glyph positioning (if needed)
-     *
-     * @param contentStream the content stream
-     * @param font to be used
-     * @param fontSize font size
-     * @param text text to show
-     *
-     * @throws IOException if an I/O exception occurs
-     * @throws IllegalArgumentException if glyphs are missing
-     */
-    @Override
-    public void showText(ContentStreamForGlyphLayoutInterface contentStream, PDType0Font font, float fontSize, String text)
-            throws IOException {
-        List<TextAndBidiLevel> textAndBidiLevels = doBidiSplittingAndReordering(text);
-        for (TextAndBidiLevel textAndBidiLevel:  textAndBidiLevels) {
-            showTextUni(contentStream, font, fontSize, textAndBidiLevel.getText(), textAndBidiLevel.getBidiLevel());
-        }
-    }
-
-    /**
-     * Do Bidi splitting and reordering
-     * @param text text
-     * @return list of texts and bidi levels
-     */
-    protected List<TextAndBidiLevel> doBidiSplittingAndReordering(String text)
-    {
-        ArrayList<TextAndBidiLevel> textAndBidiLevels = new ArrayList<>();
-
-        Objects.requireNonNull(text, "Text must be set");
-
-        if (Bidi.requiresBidi(text.toCharArray(), 0, text.length()))
-        {
-            Bidi bidi = new Bidi(text, Bidi.DIRECTION_DEFAULT_LEFT_TO_RIGHT);
-            if (bidi.isMixed())
-            {
-                // Split and Reorder
-                // See PDFTextStripper.handleDirection
-                // collect individual bidi information
-                int runCount = bidi.getRunCount();
-                byte[] levels = new byte[runCount];
-                Integer[] runs = new Integer[runCount];
-
-                for (int i = 0; i < runCount; i++)
-                {
-                    levels[i] = (byte) bidi.getRunLevel(i);
-                    runs[i] = i;
-                }
-                // reorder individual parts based on their levels
-                Bidi.reorderVisually(levels, 0, runs, 0, runCount);
-
-                for (int i = 0; i < runCount; i++)
-                {
-                    int index = runs[i];
-                    int start = bidi.getRunStart(index);
-                    int limit = bidi.getRunLimit(index);
-                    int bidiLevel = levels[index];
-                    String part = text.substring(start, limit);
-                    textAndBidiLevels.add(new TextAndBidiLevel(part, bidiLevel));
-                }
-            }
-            else
-            {
-                textAndBidiLevels.add(new TextAndBidiLevel(text, bidi.getBaseLevel()));
-            }
-        }
-        else
-        {
-            textAndBidiLevels.add(new TextAndBidiLevel(text, Bidi.DIRECTION_LEFT_TO_RIGHT));
-        }
-        return Collections.unmodifiableList(textAndBidiLevels);
-    }
 
     protected static class TextAndGpa {
         private final String text;
@@ -281,7 +172,7 @@ public class GlyphLayoutProcessorFop implements GlyphLayoutProcessorInterface
      * @param font to be used
      * @param fontSize font size
      * @param text text to show
-     * @param bidiLevel
+     * @param bidiLevel Bidi level
      */
     protected TextAndGpa computeGlyphsAndPositions(PDType0Font font, float fontSize, String text, int bidiLevel)
     {
@@ -329,15 +220,18 @@ public class GlyphLayoutProcessorFop implements GlyphLayoutProcessorInterface
     }
 
     /**
-     * Shows a text using FOP positioning
+     * Shows unidirectional text using positioning
      *
-     * @param contentStream
-     * @param font
-     * @param text the text to show
-     * @param fontSize
-     * @param bidiLevel
-     * @throws IOException if an I/O error occurs
+     * @param contentStream the content stream
+     * @param font to be used
+     * @param fontSize font size
+     * @param text text to show
+     * @param bidiLevel Bidi level*
+     *
+     * @throws IOException if an I/O exception occurs
+     * @throws IllegalArgumentException if glyphs are missing
      */
+    @Override
     protected void showTextUni(ContentStreamForGlyphLayoutInterface contentStream, PDType0Font font, float fontSize,
             String text, int bidiLevel) throws IOException
     {
@@ -370,7 +264,7 @@ public class GlyphLayoutProcessorFop implements GlyphLayoutProcessorInterface
             float px = gpa[i][0] / fontSize * 1000f / FOP_FONTSIZE_FACTOR;
             float py = gpa[i][1] / FOP_FONTSIZE_FACTOR;
             float ax = gpa[i][2] / fontSize * 1000f / FOP_FONTSIZE_FACTOR;
-            float ay = gpa[i][3] / FOP_FONTSIZE_FACTOR; // ignored in horizontal typesetting
+            // float ay = gpa[i][3] / FOP_FONTSIZE_FACTOR; // ignored in horizontal typesetting
 
             if (Math.abs(py) >= delta)
             {
