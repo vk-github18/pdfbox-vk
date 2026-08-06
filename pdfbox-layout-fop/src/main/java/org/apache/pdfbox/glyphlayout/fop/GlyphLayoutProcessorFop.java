@@ -246,8 +246,8 @@ public class GlyphLayoutProcessorFop extends AbstractGlyphLayoutProcessor implem
         text = textAndGpa.getText();
         int[][] gpa = textAndGpa.getGpa();
         boolean hasPositioning = textAndGpa.hasPositioning();
-        int[] glyphIds = convertCharsToGlyphIds(font, text);
 
+        int[] glyphIds = convertCharsToGlyphIds(font, text);
 
         if (glyphIds.length != text.length() && hasPositioning)
         {
