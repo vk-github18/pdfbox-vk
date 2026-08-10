@@ -251,7 +251,7 @@ public class PlainTextFormatter
                 contents.showText(word.getText());
                 GlyphLayoutProcessorInterface glyphLayoutProcessor = appearanceStyle.getGlyphLayoutProcessor();
                 PDFont font = appearanceStyle.getFont();
-                if (glyphLayoutProcessor == null && glyphLayoutProcessor.supportsFont(font))
+                if (glyphLayoutProcessor == null || !glyphLayoutProcessor.supportsFont(font))
                 {
                     wordWidth = (Float) word.getAttributes().getIterator().getAttribute(TextAttribute.WIDTH);
                 } else {
