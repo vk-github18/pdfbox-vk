@@ -22,6 +22,7 @@ import java.util.List;
 import org.apache.pdfbox.pdmodel.GlyphLayoutProcessorInterface;
 import org.apache.pdfbox.pdmodel.PDAppearanceContentStream;
 import org.apache.pdfbox.pdmodel.font.PDFont;
+import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.pdmodel.interactive.PlainText.Line;
 import org.apache.pdfbox.pdmodel.interactive.PlainText.Paragraph;
 import org.apache.pdfbox.pdmodel.interactive.PlainText.TextAttribute;
@@ -255,7 +256,7 @@ public class PlainTextFormatter
                     wordWidth = (Float) word.getAttributes().getIterator().getAttribute(TextAttribute.WIDTH);
                 } else {
                     wordWidth = glyphLayoutProcessor.getStringWidth(
-                            font, appearanceStyle.getFontSize(), word.getText());
+                            (PDType0Font) font, appearanceStyle.getFontSize(), word.getText());
                 }
                 if (wordIndex != words.size() -1)
                 {
