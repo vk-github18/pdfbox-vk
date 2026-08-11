@@ -929,7 +929,8 @@ class AppearanceGeneratorHelper
                         int numLines = 0;
                         for (PlainText.Paragraph paragraph : textContent.getParagraphs())
                         {
-                            numLines += paragraph.getLines(font, fs, width).size();
+                            GlyphLayoutProcessorInterface glyphLayoutProcessor = field.getAcroForm().getGlyphLayoutProcessor();
+                            numLines += paragraph.getLines(glyphLayoutProcessor, font, fs, width).size();
                         }
                         // calculate the height required for this font size
                         float fontScaleY = fs / FONTSCALE;

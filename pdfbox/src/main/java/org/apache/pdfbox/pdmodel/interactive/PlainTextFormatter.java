@@ -153,7 +153,10 @@ public class PlainTextFormatter
             {
                 if (wrapLines)
                 {
+                    GlyphLayoutProcessorInterface glyphLayoutProcessor = appearanceStyle.getGlyphLayoutProcessor();
+
                     List<Line> lines = paragraph.getLines(
+                                glyphLayoutProcessor,
                                 appearanceStyle.getFont(), 
                                 appearanceStyle.getFontSize(), 
                                 width
@@ -249,15 +252,7 @@ public class PlainTextFormatter
             for (Word word : words)
             {
                 contents.showText(word.getText());
-                GlyphLayoutProcessorInterface glyphLayoutProcessor = appearanceStyle.getGlyphLayoutProcessor();
-                PDFont font = appearanceStyle.getFont();
-                if (glyphLayoutProcessor == null || !glyphLayoutProcessor.supportsFont(font))
-                {
-                    wordWidth = (Float) word.getAttributes().getIterator().getAttribute(TextAttribute.WIDTH);
-                } else {
-                    wordWidth = glyphLayoutProcessor.getStringWidth(
-                            (PDType0Font) font, appearanceStyle.getFontSize(), word.getText());
-                }
+                wordWidth = (Float) word.getAttributes().getIterator().getAttribute(TextAttribute.WIDTH);
                 if (wordIndex != words.size() -1)
                 {
                     contents.newLineAtOffset(wordWidth + interWordSpacing, 0f);

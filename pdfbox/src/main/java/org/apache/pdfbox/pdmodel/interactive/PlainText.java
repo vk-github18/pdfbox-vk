@@ -24,7 +24,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.pdfbox.pdmodel.GlyphLayoutProcessorInterface;
 import org.apache.pdfbox.pdmodel.font.PDFont;
+import org.apache.pdfbox.pdmodel.font.PDType0Font;
 
 /**
  * A block of text.
@@ -39,6 +41,12 @@ public class PlainText
     private static final float FONTSCALE = 1000f;
     
     private final List<Paragraph> paragraphs;
+
+    /**
+     * Glyph layout processor
+     */
+    private GlyphLayoutProcessorInterface glyphLayoutProcessor;
+
     
     /**
      * Construct the text block from a single value.
@@ -85,7 +93,18 @@ public class PlainText
         paragraphs = new ArrayList<>(listValue.size());
         listValue.forEach(part -> paragraphs.add(new Paragraph(part)));
     }
-    
+
+    /**
+     * Set glyph layout processor
+     *
+     * @param glyphLayoutProcessor
+     */
+    public void setGlyphLayoutProcessor(GlyphLayoutProcessorInterface glyphLayoutProcessor)
+    {
+        this.glyphLayoutProcessor = glyphLayoutProcessor;
+    }
+
+
     /**
      * Get the list of paragraphs.
      * 
@@ -148,6 +167,17 @@ public class PlainText
             return textContent;
         }
 
+        protected static float computeStringWidth(GlyphLayoutProcessorInterface glyphLayoutProcessor, PDFont font,
+                                                  float fontSize, String s) throws IOException
+        {
+            final float scale = fontSize/FONTSCALE;
+
+            return glyphLayoutProcessor != null && glyphLayoutProcessor.supportsFont(font) ?
+                    glyphLayoutProcessor.getStringWidth((PDType0Font) font, fontSize, s)
+                    : font.getStringWidth(s) * scale;
+
+        }
+
         /**
          * Break the paragraph into individual lines.
          *
@@ -157,7 +187,8 @@ public class PlainText
          * @return the individual lines.
          * @throws IOException
          */
-        public List<Line> getLines(PDFont font, float fontSize, float width) throws IOException
+        public List<Line> getLines(GlyphLayoutProcessorInterface glyphLayoutProcessor,
+                                   PDFont font, float fontSize, float width) throws IOException
         {
             if (width <= 0)
             {
@@ -166,7 +197,6 @@ public class PlainText
             BreakIterator iterator = BreakIterator.getLineInstance();
             iterator.setText(textContent);
 
-            final float scale = fontSize/FONTSCALE;
 
             int start = iterator.first();
             int end = iterator.next();
@@ -178,7 +208,8 @@ public class PlainText
             while (end != BreakIterator.DONE)
             {
                 String word = textContent.substring(start,end);
-                float wordWidth = font.getStringWidth(word) * scale;
+
+                float wordWidth = computeStringWidth(glyphLayoutProcessor, font, fontSize, word);
 
                 boolean wordNeedsSplit = false;
                 int splitOffset = end - start;
@@ -188,7 +219,8 @@ public class PlainText
                 // check if the last word would fit without the whitespace ending it
                 if (lineWidth >= width && Character.isWhitespace(word.charAt(word.length()-1)))
                 {
-                    float whitespaceWidth = font.getStringWidth(word.substring(word.length()-1)) * scale;
+                    float whitespaceWidth = computeStringWidth(glyphLayoutProcessor, font, fontSize,
+                            word.substring(word.length()-1));
                     lineWidth = lineWidth - whitespaceWidth;
                 }
 
