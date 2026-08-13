@@ -56,7 +56,7 @@ public class GlyphLayoutProcessorAwt extends AbstractGlyphLayoutProcessor implem
      */
     public GlyphLayoutProcessorAwt()
     {
-        this.glyphLayoutFontLoaderAwt = new GlyphLayoutFontLoaderAwt();
+        this.glyphLayoutFontLoaderAwt = new GlyphLayoutFontLoaderAwt(this);
     }
 
     /**
@@ -93,6 +93,19 @@ public class GlyphLayoutProcessorAwt extends AbstractGlyphLayoutProcessor implem
     public boolean supportsFont(PDFont font)
     {
         return glyphLayoutFontLoaderAwt.supportsFont(font);
+    }
+
+    /**
+     * Returns a PDTyoe0GlyphlayoutFont if the font is supported
+     * by the GlyphLayoutProcessor, the given font otherwise
+     *
+     * @param font given font
+     * @return Returns a PDTyoe0GlyphlayoutFont if the font is supported
+     *      by the GlyphLayoutProcessor, the given font otherwise
+     */
+    @Override
+    public PDFont getFont(PDFont font) {
+        return glyphLayoutFontLoaderAwt.getFont(font);
     }
 
     /**

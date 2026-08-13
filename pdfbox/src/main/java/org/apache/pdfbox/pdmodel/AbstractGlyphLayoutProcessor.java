@@ -79,11 +79,12 @@ public abstract class AbstractGlyphLayoutProcessor implements GlyphLayoutProcess
      */
     public float getStringWidth(PDType0Font font, float fontSize, String text) throws IOException
     {
+        AbstractGlyphLayoutProcessor processor = supportsFont(font) ? this : new GlyphLayoutProcessorDefault();
         float width = 0f;
         List<TextAndBidiLevel> textAndBidiLevels = doBidiSplittingAndReordering(text);
         for (TextAndBidiLevel textAndBidiLevel:  textAndBidiLevels)
         {
-            width += getStringWidthUni(font, fontSize, textAndBidiLevel.getText(), textAndBidiLevel.getBidiLevel());
+            width += processor.getStringWidthUni(font, fontSize, textAndBidiLevel.getText(), textAndBidiLevel.getBidiLevel());
         }
         return width;
     }
@@ -117,10 +118,12 @@ public abstract class AbstractGlyphLayoutProcessor implements GlyphLayoutProcess
     public void showText(ContentStreamForGlyphLayoutInterface contentStream, PDType0Font font, float fontSize, String text)
             throws IOException
     {
+        AbstractGlyphLayoutProcessor processor = supportsFont(font) ? this : new GlyphLayoutProcessorDefault();
+
         List<TextAndBidiLevel> textAndBidiLevels = doBidiSplittingAndReordering(text);
         for (TextAndBidiLevel textAndBidiLevel:  textAndBidiLevels)
         {
-            showTextUni(contentStream, font, fontSize, textAndBidiLevel.getText(), textAndBidiLevel.getBidiLevel());
+            processor.showTextUni(contentStream, font, fontSize, textAndBidiLevel.getText(), textAndBidiLevel.getBidiLevel());
         }
     }
 

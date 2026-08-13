@@ -19,10 +19,7 @@ package org.apache.pdfbox.pdmodel.interactive;
 import java.io.IOException;
 import java.util.List;
 
-import org.apache.pdfbox.pdmodel.GlyphLayoutProcessorInterface;
 import org.apache.pdfbox.pdmodel.PDAppearanceContentStream;
-import org.apache.pdfbox.pdmodel.font.PDFont;
-import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.pdmodel.interactive.PlainText.Line;
 import org.apache.pdfbox.pdmodel.interactive.PlainText.Paragraph;
 import org.apache.pdfbox.pdmodel.interactive.PlainText.TextAttribute;
@@ -30,7 +27,7 @@ import org.apache.pdfbox.pdmodel.interactive.PlainText.Word;
 
 /**
  * TextFormatter to handle plain text formatting for annotation rectangles.
- * 
+ * <p>
  * The text formatter will take a single value or an array of values which
  * are treated as paragraphs.
  */
@@ -42,18 +39,18 @@ public class PlainTextFormatter
      * The scaling factor for font units to PDF units
      */
     private static final int FONTSCALE = 1000;
-    
+
     private final AppearanceStyle appearanceStyle;
     private final boolean wrapLines;
     private final float width;
-    
+
     private final PDAppearanceContentStream contents;
     private final PlainText textContent;
     private final TextAlign textAlignment;
-    
+
     private float horizontalOffset;
     private float verticalOffset;
-    
+
     public static class Builder
     {
 
@@ -66,12 +63,12 @@ public class PlainTextFormatter
         private float width = 0f;
         private PlainText textContent;
         private TextAlign textAlignment = TextAlign.LEFT;
-        
-       
+
+
         // initial offset from where to start the position of the first line
         private float horizontalOffset = 0f;
         private float verticalOffset = 0f;
-        
+
         public Builder(PDAppearanceContentStream contents)
         {
             this.contents = contents;
@@ -82,7 +79,7 @@ public class PlainTextFormatter
             this.appearanceStyle = appearanceStyle;
             return this;
         }
-        
+
         public Builder wrapLines(boolean wrapLines)
         {
             this.wrapLines = wrapLines;
@@ -100,33 +97,33 @@ public class PlainTextFormatter
             this.textAlignment  = TextAlign.valueOf(alignment);
             return this;
         }
-        
+
         public Builder textAlign(TextAlign alignment)
         {
             this.textAlignment  = alignment;
             return this;
         }
-        
-        
+
+
         public Builder text(PlainText textContent)
         {
             this.textContent  = textContent;
             return this;
         }
-        
+
         public Builder initialOffset(float horizontalOffset, float verticalOffset)
         {
             this.horizontalOffset = horizontalOffset;
             this.verticalOffset = verticalOffset;
             return this;
         }
-        
+
         public PlainTextFormatter build()
         {
             return new PlainTextFormatter(this);
         }
     }
-    
+
     private PlainTextFormatter(Builder builder)
     {
         appearanceStyle = builder.appearanceStyle;
@@ -138,10 +135,10 @@ public class PlainTextFormatter
         horizontalOffset = builder.horizontalOffset;
         verticalOffset = builder.verticalOffset;
     }
-    
+
     /**
      * Format the text block.
-     * 
+     *
      * @throws IOException if there is an error writing to the stream.
      */
     public void format() throws IOException
@@ -153,41 +150,38 @@ public class PlainTextFormatter
             {
                 if (wrapLines)
                 {
-                    GlyphLayoutProcessorInterface glyphLayoutProcessor = appearanceStyle.getGlyphLayoutProcessor();
-
                     List<Line> lines = paragraph.getLines(
-                                glyphLayoutProcessor,
-                                appearanceStyle.getFont(), 
-                                appearanceStyle.getFontSize(), 
-                                width
-                            );
+                            appearanceStyle.getFont(),
+                            appearanceStyle.getFontSize(),
+                            width
+                    );
                     processLines(lines, isFirstParagraph);
                     isFirstParagraph = false;
                 }
                 else
                 {
                     float startOffset = 0f;
-                    
-                    
+
+
                     float lineWidth = appearanceStyle.getFont().getStringWidth(paragraph.getText()) *
                             appearanceStyle.getFontSize() / FONTSCALE;
-                    
-                    if (lineWidth < width) 
+
+                    if (lineWidth < width)
                     {
                         switch (textAlignment)
                         {
-                        case CENTER:
-                            startOffset = (width - lineWidth)/2;
-                            break;
-                        case RIGHT:
-                            startOffset = width - lineWidth;
-                            break;
-                        case JUSTIFY:
-                        default:
-                            startOffset = 0f;
+                            case CENTER:
+                                startOffset = (width - lineWidth)/2;
+                                break;
+                            case RIGHT:
+                                startOffset = width - lineWidth;
+                                break;
+                            case JUSTIFY:
+                            default:
+                                startOffset = 0f;
                         }
                     }
-                    
+
                     contents.newLineAtOffset(horizontalOffset + startOffset, verticalOffset);
                     contents.showText(paragraph.getText());
                 }
@@ -197,10 +191,10 @@ public class PlainTextFormatter
 
     /**
      * Process lines for output. 
-     *
+     * <p>
      * Process lines for an individual paragraph and generate the 
      * commands for the content stream to show the text.
-     * 
+     *
      * @param lines the lines to process.
      * @throws IOException if there is an error writing to the stream.
      */
@@ -211,29 +205,29 @@ public class PlainTextFormatter
         float lastPos = 0f;
         float startOffset = 0f;
         float interWordSpacing = 0f;
-        
+
         for (Line line : lines)
         {
             switch (textAlignment)
             {
-            case CENTER:
-                startOffset = (width - line.getWidth())/2;
-                break;
-            case RIGHT:
-                startOffset = width - line.getWidth();
-                break;
-            case JUSTIFY:
-                if (lines.indexOf(line) != lines.size() -1)
-                {
-                    interWordSpacing = line.getInterWordSpacing(width);
-                }
-                break;
-            default:
-                startOffset = 0f;
+                case CENTER:
+                    startOffset = (width - line.getWidth())/2;
+                    break;
+                case RIGHT:
+                    startOffset = width - line.getWidth();
+                    break;
+                case JUSTIFY:
+                    if (lines.indexOf(line) != lines.size() -1)
+                    {
+                        interWordSpacing = line.getInterWordSpacing(width);
+                    }
+                    break;
+                default:
+                    startOffset = 0f;
             }
-            
+
             float offset = -lastPos + startOffset + horizontalOffset;
-            
+
             if (lines.indexOf(line) == 0 && isFirstParagraph)
             {
                 contents.newLineAtOffset(offset, verticalOffset);
@@ -245,7 +239,7 @@ public class PlainTextFormatter
                 contents.newLineAtOffset(offset, - appearanceStyle.getLeading());
             }
 
-            lastPos += offset; 
+            lastPos += offset;
 
             List<Word> words = line.getWords();
             int wordIndex = 0;

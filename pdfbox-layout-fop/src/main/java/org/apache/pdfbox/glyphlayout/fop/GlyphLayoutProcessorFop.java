@@ -60,7 +60,7 @@ public class GlyphLayoutProcessorFop extends AbstractGlyphLayoutProcessor implem
      */
     public GlyphLayoutProcessorFop()
     {
-        this.glyphLayoutFontLoaderFop = new GlyphLayoutFontLoaderFop();
+        this.glyphLayoutFontLoaderFop = new GlyphLayoutFontLoaderFop(this);
     }
 
     /**
@@ -98,6 +98,11 @@ public class GlyphLayoutProcessorFop extends AbstractGlyphLayoutProcessor implem
     public boolean supportsFont(PDFont font)
     {
         return glyphLayoutFontLoaderFop.supportsFont(font);
+    }
+
+    @Override
+    public PDFont getFont(PDFont font) {
+        return glyphLayoutFontLoaderFop.getFont(font);
     }
 
     /**

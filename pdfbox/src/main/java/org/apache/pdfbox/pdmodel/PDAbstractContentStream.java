@@ -32,6 +32,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import org.apache.logging.log4j.Logger;
@@ -100,7 +101,7 @@ abstract class PDAbstractContentStream implements ContentStreamForGlyphLayoutInt
 
     private final Map<PDType0Font, GsubWorker> gsubWorkerMap = new HashMap<>();
     private final GsubWorkerFactory gsubWorkerFactory = new GsubWorkerFactory();
-    private GlyphLayoutProcessorInterface glyphLayoutProcessor;
+    private GlyphLayoutProcessorInterface glyphLayoutProcessor = new GlyphLayoutProcessorDefault();
 
     /**
      * Create a new appearance stream.
@@ -126,6 +127,7 @@ abstract class PDAbstractContentStream implements ContentStreamForGlyphLayoutInt
      */
     public void setGlyphLayoutProcessor(GlyphLayoutProcessorInterface glyphLayoutProcessor)
     {
+        Objects.requireNonNull(glyphLayoutProcessor, "glyphLayoutProcessor must not be null");
         this.glyphLayoutProcessor = glyphLayoutProcessor;
     }
 
@@ -353,10 +355,20 @@ abstract class PDAbstractContentStream implements ContentStreamForGlyphLayoutInt
         }
         else
         {
-            showTextInternal(text);
-            writeBytes(ASCII_SPACE);
-            writeOperator(OperatorName.SHOW_TEXT);
+            showTextDefault(text);
         }
+    }
+
+    /**
+     * Shows the text
+     *
+     * @param text text to be shown
+     * @throws IOException if an I/O exception occurs
+     */
+    public void showTextDefault(String text) throws IOException {
+        showTextInternal(text);
+        writeBytes(ASCII_SPACE);
+        writeOperator(OperatorName.SHOW_TEXT);
     }
 
     /**

@@ -501,10 +501,8 @@ class AppearanceGeneratorHelper
         try (PDAppearanceContentStream contents = new PDAppearanceContentStream(appearanceStream, output))
         {
             GlyphLayoutProcessorInterface glyphLayoutProcessor = field.getAcroForm().getGlyphLayoutProcessor();
-            if (glyphLayoutProcessor != null)
-            {
-                contents.setGlyphLayoutProcessor(glyphLayoutProcessor);
-            }
+            contents.setGlyphLayoutProcessor(glyphLayoutProcessor);
+
             PDRectangle bbox = resolveBoundingBox(widget, appearanceStream);
             
             // Acrobat calculates the left and right padding dependent on the offset of the border edge
@@ -530,7 +528,7 @@ class AppearanceGeneratorHelper
             contents.clip();
             
             // get the font
-            PDFont font = defaultAppearance.getFont();
+            PDFont font = glyphLayoutProcessor.getFont(defaultAppearance.getFont());
             if (font == null)
             {
                 throw new IllegalArgumentException("font is null, check whether /DA entry is incomplete or incorrect");
@@ -637,9 +635,6 @@ class AppearanceGeneratorHelper
                 AppearanceStyle appearanceStyle = new AppearanceStyle();
                 appearanceStyle.setFont(font);
                 appearanceStyle.setFontSize(fontSize);
-                if (glyphLayoutProcessor != null) {
-                    appearanceStyle.setGlyphLayoutProcessor(glyphLayoutProcessor);
-                }
 
                 // Adobe Acrobat uses the font's bounding box for the leading between the lines
                 appearanceStyle.setLeading(font.getBoundingBox().getHeight() * fontScaleY);
@@ -929,8 +924,7 @@ class AppearanceGeneratorHelper
                         int numLines = 0;
                         for (PlainText.Paragraph paragraph : textContent.getParagraphs())
                         {
-                            GlyphLayoutProcessorInterface glyphLayoutProcessor = field.getAcroForm().getGlyphLayoutProcessor();
-                            numLines += paragraph.getLines(glyphLayoutProcessor, font, fs, width).size();
+                            numLines += paragraph.getLines(font, fs, width).size();
                         }
                         // calculate the height required for this font size
                         float fontScaleY = fs / FONTSCALE;
@@ -942,7 +936,7 @@ class AppearanceGeneratorHelper
                         {
                             return Math.max(fs - 1, MINIMUM_FONT_SIZE);
                         }
-                        fs += 1.0;
+                        fs += 1.0f;
                     }
                     return Math.min(fs, DEFAULT_FONT_SIZE);
                 }
