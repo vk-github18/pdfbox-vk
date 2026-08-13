@@ -38,7 +38,6 @@ public interface GlyphLayoutProcessorInterface
      */
     boolean supportsFont(PDFont font);
 
-
     /**
      * Compute the width for a text
      * @param font to be used
@@ -60,5 +59,4 @@ public interface GlyphLayoutProcessorInterface
      * @throws IllegalArgumentException if glyphs are missing
      */
     void showText(ContentStreamForGlyphLayoutInterface contentStream, PDType0Font font, float fontSize, String text) throws IOException;
-
 }

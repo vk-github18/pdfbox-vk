@@ -502,10 +502,10 @@ class AppearanceGeneratorHelper
         try (PDAppearanceContentStream contents = new PDAppearanceContentStream(appearanceStream, output))
         {
             GlyphLayoutProcessorInterface glyphLayoutProcessor = field.getAcroForm().getGlyphLayoutProcessor();
-            if (glyphLayoutProcessor != null) {
+            if (glyphLayoutProcessor != null)
+            {
                 contents.setGlyphLayoutProcessor(glyphLayoutProcessor);
             }
-
             PDRectangle bbox = resolveBoundingBox(widget, appearanceStream);
             
             // Acrobat calculates the left and right padding dependent on the offset of the border edge

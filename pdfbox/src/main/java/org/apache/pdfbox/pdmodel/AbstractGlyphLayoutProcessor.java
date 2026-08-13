@@ -80,7 +80,8 @@ public abstract class AbstractGlyphLayoutProcessor implements GlyphLayoutProcess
      */
     public float getStringWidth(PDType0Font font, float fontSize, String text) throws IOException
     {
-        if (!supportsFont(font)) {
+        if (!supportsFont(font))
+        {
             throw new IllegalArgumentException("font must be supported by the GlyphLayoutProcessor");
         }
         float width = 0f;
@@ -121,10 +122,10 @@ public abstract class AbstractGlyphLayoutProcessor implements GlyphLayoutProcess
     public void showText(ContentStreamForGlyphLayoutInterface contentStream, PDType0Font font, float fontSize, String text)
             throws IOException
     {
-        if (!supportsFont(font)) {
+        if (!supportsFont(font))
+        {
             throw new IllegalArgumentException("font must be supported by the GlyphLayoutProcessor");
         }
-
         List<TextAndBidiLevel> textAndBidiLevels = doBidiSplittingAndReordering(text);
         for (TextAndBidiLevel textAndBidiLevel:  textAndBidiLevels)
         {

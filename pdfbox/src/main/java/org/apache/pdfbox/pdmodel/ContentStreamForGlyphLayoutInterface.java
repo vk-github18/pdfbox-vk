@@ -46,5 +46,4 @@ public interface ContentStreamForGlyphLayoutInterface
      * @throws IOException If the content stream could not be written.
      */
     void setTextRise(float rise) throws IOException;
-
 }

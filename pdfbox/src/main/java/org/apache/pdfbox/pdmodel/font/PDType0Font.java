@@ -783,7 +783,6 @@ public class PDType0Font extends PDFont implements PDVectorFont
         return glyphLayoutProcessor != null && glyphLayoutProcessor.supportsFont(this)
                 ?   glyphLayoutProcessor.getStringWidth((PDType0Font) this, 1.0f, text) / getFontMatrix().getScaleX()
                 :   getStringWidthBasic(text);
-
     }
     /**
      * Returns the width of the given Unicode string.
@@ -796,6 +795,5 @@ public class PDType0Font extends PDFont implements PDVectorFont
     public float getStringWidthBasic(String text) throws IOException
     {
         return super.getStringWidth(text);
-
     }
 }
