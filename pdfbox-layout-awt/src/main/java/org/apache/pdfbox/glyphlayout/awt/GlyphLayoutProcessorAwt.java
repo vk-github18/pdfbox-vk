@@ -194,11 +194,6 @@ public class GlyphLayoutProcessorAwt extends AbstractGlyphLayoutProcessor implem
     {
         Objects.requireNonNull(font, "Font must be set");
         Objects.requireNonNull(text, "Text must be set");
-        if (! (font instanceof PDType0GlyphLayoutFont))
-        {
-            throw new IllegalArgumentException("Font must be PDType0GlyphLayoutFont");
-        }
-
 
         char[] chars = text.toCharArray();
 

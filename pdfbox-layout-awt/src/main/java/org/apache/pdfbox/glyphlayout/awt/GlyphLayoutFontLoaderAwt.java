@@ -172,9 +172,9 @@ public class GlyphLayoutFontLoaderAwt
      * @param font PDFBox font
      * @return AWT font if available
      */
-    protected Font getAwtFont(PDType0GlyphLayoutFont font)
+    protected Font getAwtFont(PDType0Font font)
     {
-        return awtFontMap.get(font);
+        return font instanceof PDType0GlyphLayoutFont ? awtFontMap.get(font) : null;
     }
 
     /**

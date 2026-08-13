@@ -33,7 +33,7 @@ import java.io.InputStream;
 public class PDType0GlyphLayoutFont extends PDType0Font implements PDVectorFont
 {
     protected final GlyphLayoutProcessorInterface glyphLayoutProcessor;
-
+    
     protected PDType0GlyphLayoutFont(GlyphLayoutProcessorInterface glyphLayoutProcessor,
                                   PDDocument doc, RandomAccessRead randomAccessRead,
                                   boolean embedSubset, boolean vertical)
