@@ -106,21 +106,4 @@ public class AppearanceStyle
         this.leading = leading;
     }
 
-    /**
-     *
-     * @param glyphLayoutProcessor
-     */
-    public void setGlyphLayoutProcessor(GlyphLayoutProcessorInterface glyphLayoutProcessor)
-    {
-        this.glyphLayoutProcessor = glyphLayoutProcessor;
-    }
-
-    /**
-     *
-     * @return
-     */
-    public GlyphLayoutProcessorInterface getGlyphLayoutProcessor()
-    {
-        return glyphLayoutProcessor;
-    }
 }

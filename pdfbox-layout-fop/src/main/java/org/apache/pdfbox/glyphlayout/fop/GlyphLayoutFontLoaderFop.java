@@ -24,7 +24,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.fop.apps.io.InternalResourceResolver;
@@ -159,14 +158,6 @@ public class GlyphLayoutFontLoaderFop
     protected MultiByteFont getFopFont(PDType0Font font)
     {
         return fopFontMap.get(font);
-    }
-
-
-    public PDFont getFont(PDFont font) {
-        Optional<PDType0Font> pdType0GlyphLayoutFontOptional =
-                fopFontMap.keySet().stream().filter(k -> k.getFontDescriptor().equals(font.getFontDescriptor())).findFirst();
-
-        return pdType0GlyphLayoutFontOptional.isPresent() ?  pdType0GlyphLayoutFontOptional.get() : font;
     }
 
     /**
