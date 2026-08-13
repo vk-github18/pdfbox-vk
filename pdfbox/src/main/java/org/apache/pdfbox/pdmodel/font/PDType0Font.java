@@ -135,7 +135,7 @@ public class PDType0Font extends PDFont implements PDVectorFont
      * @param vertical whether to enable vertical substitutions.
      * @throws IOException
      */
-    protected PDType0Font(PDDocument document, TrueTypeFont ttf, boolean embedSubset,
+    private PDType0Font(PDDocument document, TrueTypeFont ttf, boolean embedSubset,
             boolean closeTTF, boolean vertical) throws IOException
     {
         if (vertical)
@@ -164,7 +164,6 @@ public class PDType0Font extends PDFont implements PDVectorFont
             }
         }
     }
-
 
     /**
      * Loads a TTF to be embedded and subset into a document as a Type 0 font. If you are loading a
@@ -783,7 +782,7 @@ public class PDType0Font extends PDFont implements PDVectorFont
     {
         return glyphLayoutProcessor != null && glyphLayoutProcessor.supportsFont(this)
                 ?   glyphLayoutProcessor.getStringWidth((PDType0Font) this, 1.0f, text) / getFontMatrix().getScaleX()
-                :   super.getStringWidth(text);
+                :   getStringWidthBasic(text);
 
     }
     /**
@@ -799,5 +798,4 @@ public class PDType0Font extends PDFont implements PDVectorFont
         return super.getStringWidth(text);
 
     }
-
 }

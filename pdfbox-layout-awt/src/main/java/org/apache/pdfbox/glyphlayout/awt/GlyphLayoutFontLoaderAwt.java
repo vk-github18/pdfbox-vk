@@ -58,7 +58,7 @@ public class GlyphLayoutFontLoaderAwt
      *
      * @param pdDocument document
      * @param inputStream of the font
-     * @return PDType0GlyphLayoutFont PDFBox font
+     * @return PDType0Font PDFBox font
      * @throws IOException if font can not be loaded
      * @throws FontFormatException if the font is bad
      */
@@ -75,7 +75,7 @@ public class GlyphLayoutFontLoaderAwt
      * @param inputStream of the font
      * @param embedSubset True if the font will be subset before embedding. Set this to false when
      * creating a font for AcroForm.
-     * @return PDType0GlyphLayoutFont PDFBox font
+     * @return PDType0Font PDFBox font
      * @throws IOException if font can not be loaded
      * @throws FontFormatException if the font is bad
      */
@@ -91,7 +91,7 @@ public class GlyphLayoutFontLoaderAwt
      * @param pdDocument document
      * @param inputStream of the font
      * @param fontOptions options for font
-     * @return PDType0GlyphLayoutFont PDFBox font
+     * @return PDType0Font PDFBox font
      * @throws IOException if font can not be loaded
      * @throws FontFormatException if the font is bad
      */
@@ -109,7 +109,7 @@ public class GlyphLayoutFontLoaderAwt
      * @param embedSubset True if the font will be subset before embedding. Set this to false when
      * creating a font for AcroForm.
      * @param fontOptions Options for font
-     * @return PDType0GlyphLayoutFont PDFBox font
+     * @return PDType0Font PDFBox font
      * @throws IOException if font can not be loaded
      * @throws FontFormatException if the font is bad
      */
