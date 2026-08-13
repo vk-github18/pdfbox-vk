@@ -162,7 +162,8 @@ public class GlyphLayoutFontLoaderAwt
      */
     public boolean supportsFont(PDFont font)
     {
-        return awtFontMap.containsKey(font);
+        return (font instanceof PDType0GlyphLayoutFont)
+                && awtFontMap.containsKey((PDType0GlyphLayoutFont)font);
     }
 
     /**
@@ -171,12 +172,16 @@ public class GlyphLayoutFontLoaderAwt
      * @param font PDFBox font
      * @return AWT font if available
      */
-    public Font getAwtFont(PDType0Font font)
+    protected Font getAwtFont(PDType0GlyphLayoutFont font)
     {
         return awtFontMap.get(font);
     }
 
-
+    /**
+     *
+     * @param font
+     * @return
+     */
     public PDFont getFont(PDFont font) {
         Optional<PDType0GlyphLayoutFont> pdType0GlyphLayoutFontOptional =
                 awtFontMap.keySet().stream().filter(k -> k.getFontDescriptor().equals(font.getFontDescriptor())).findFirst();
