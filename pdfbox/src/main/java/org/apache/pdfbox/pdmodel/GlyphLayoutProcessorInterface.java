@@ -38,15 +38,6 @@ public interface GlyphLayoutProcessorInterface
      */
     boolean supportsFont(PDFont font);
 
-    /**
-     * Returns a PDTyoe0GlyphlayoutFont if the font is supported
-     * by the GlyphLayoutProcessor, the given font otherwise
-     *
-     * @param font given font
-     * @return Returns a PDTyoe0GlyphlayoutFont if the font is supported
-     *      by the GlyphLayoutProcessor, the given font otherwise
-     */
-    PDFont getFont(PDFont font);
 
     /**
      * Compute the width for a text

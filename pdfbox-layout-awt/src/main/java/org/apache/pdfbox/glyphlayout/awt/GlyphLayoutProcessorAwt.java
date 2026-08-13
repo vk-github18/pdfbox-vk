@@ -36,7 +36,6 @@ import org.apache.pdfbox.pdmodel.GlyphsAndPositions;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
-import org.apache.pdfbox.pdmodel.font.PDType0GlyphLayoutFont;
 
 
 /**
@@ -96,18 +95,6 @@ public class GlyphLayoutProcessorAwt extends AbstractGlyphLayoutProcessor implem
         return glyphLayoutFontLoaderAwt.supportsFont(font);
     }
 
-    /**
-     * Returns a PDTyoe0GlyphlayoutFont if the font is supported
-     * by the GlyphLayoutProcessor, the given font otherwise
-     *
-     * @param font given font
-     * @return Returns a PDTyoe0GlyphlayoutFont if the font is supported
-     *      by the GlyphLayoutProcessor, the given font otherwise
-     */
-    @Override
-    public PDFont getFont(PDFont font) {
-        return glyphLayoutFontLoaderAwt.getFont(font);
-    }
 
     /**
      * Loads the AWT font needed for layout
@@ -120,7 +107,7 @@ public class GlyphLayoutProcessorAwt extends AbstractGlyphLayoutProcessor implem
      * @throws IOException if font can not be loaded
      * @throws FontFormatException if the font is bad
      */
-    public PDType0GlyphLayoutFont loadFont(PDDocument pdDocument, InputStream inputStream) throws IOException, FontFormatException
+    public PDType0Font loadFont(PDDocument pdDocument, InputStream inputStream) throws IOException, FontFormatException
     {
         return glyphLayoutFontLoaderAwt.loadFont(pdDocument, inputStream);
     }
@@ -137,7 +124,7 @@ public class GlyphLayoutProcessorAwt extends AbstractGlyphLayoutProcessor implem
      * @throws IOException if font can not be loaded
      * @throws FontFormatException if the font is bad
      */
-    public PDType0GlyphLayoutFont loadFont(PDDocument pdDocument, InputStream inputStream, boolean embedSubset)
+    public PDType0Font loadFont(PDDocument pdDocument, InputStream inputStream, boolean embedSubset)
             throws IOException, FontFormatException
     {
         return glyphLayoutFontLoaderAwt.loadFont(pdDocument, inputStream, embedSubset);
@@ -155,7 +142,7 @@ public class GlyphLayoutProcessorAwt extends AbstractGlyphLayoutProcessor implem
      * @throws IOException if font can not be loaded
      * @throws FontFormatException if the font is bad
      */
-    public PDType0GlyphLayoutFont loadFont(PDDocument pdDocument, InputStream inputStream,
+    public PDType0Font loadFont(PDDocument pdDocument, InputStream inputStream,
             GlyphLayoutFontLoaderAwt.FontOptions fontOptions) throws IOException, FontFormatException
     {
         return glyphLayoutFontLoaderAwt.loadFont(pdDocument, inputStream, fontOptions);
@@ -174,7 +161,7 @@ public class GlyphLayoutProcessorAwt extends AbstractGlyphLayoutProcessor implem
      * @throws IOException if font can not be loaded
      * @throws FontFormatException if the font is bad
      */
-    public PDType0GlyphLayoutFont loadFont(PDDocument pdDocument, InputStream inputStream, boolean embedSubset,
+    public PDType0Font loadFont(PDDocument pdDocument, InputStream inputStream, boolean embedSubset,
             GlyphLayoutFontLoaderAwt.FontOptions fontOptions) throws IOException, FontFormatException
     {
         return glyphLayoutFontLoaderAwt.loadFont(pdDocument, inputStream, embedSubset, fontOptions);
@@ -241,10 +228,6 @@ public class GlyphLayoutProcessorAwt extends AbstractGlyphLayoutProcessor implem
     {
         Objects.requireNonNull(text, "Text must be set");
         Objects.requireNonNull(contentStream, "contentStream must be set");
-        if (! (font instanceof PDType0GlyphLayoutFont))
-        {
-            throw new IllegalArgumentException("Font must be PDType0GlyphLayoutFont");
-        }
 
         GlyphVector glyphVector = computeGlyphVector(font, fontSize, text, bidiLevel);
 

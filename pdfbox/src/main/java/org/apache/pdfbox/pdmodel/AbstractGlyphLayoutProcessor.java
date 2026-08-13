@@ -76,15 +76,18 @@ public abstract class AbstractGlyphLayoutProcessor implements GlyphLayoutProcess
      * @param fontSize font size
      * @param text text
      * @return string width
+     * @throws IllegalArgumentException if the font is not supported or glyphs are missing
      */
     public float getStringWidth(PDType0Font font, float fontSize, String text) throws IOException
     {
-        AbstractGlyphLayoutProcessor processor = supportsFont(font) ? this : new GlyphLayoutProcessorDefault();
+        if (!supportsFont(font)) {
+            throw new IllegalArgumentException("font must be supported by the GlyphLayoutProcessor");
+        }
         float width = 0f;
         List<TextAndBidiLevel> textAndBidiLevels = doBidiSplittingAndReordering(text);
         for (TextAndBidiLevel textAndBidiLevel:  textAndBidiLevels)
         {
-            width += processor.getStringWidthUni(font, fontSize, textAndBidiLevel.getText(), textAndBidiLevel.getBidiLevel());
+            width += getStringWidthUni(font, fontSize, textAndBidiLevel.getText(), textAndBidiLevel.getBidiLevel());
         }
         return width;
     }
@@ -113,17 +116,19 @@ public abstract class AbstractGlyphLayoutProcessor implements GlyphLayoutProcess
      * @param text text to show
      *
      * @throws IOException if an I/O exception occurs
-     * @throws IllegalArgumentException if glyphs are missing
+     * @throws IllegalArgumentException if the font is not supported or glyphs are missing
      */
     public void showText(ContentStreamForGlyphLayoutInterface contentStream, PDType0Font font, float fontSize, String text)
             throws IOException
     {
-        AbstractGlyphLayoutProcessor processor = supportsFont(font) ? this : new GlyphLayoutProcessorDefault();
+        if (!supportsFont(font)) {
+            throw new IllegalArgumentException("font must be supported by the GlyphLayoutProcessor");
+        }
 
         List<TextAndBidiLevel> textAndBidiLevels = doBidiSplittingAndReordering(text);
         for (TextAndBidiLevel textAndBidiLevel:  textAndBidiLevels)
         {
-            processor.showTextUni(contentStream, font, fontSize, textAndBidiLevel.getText(), textAndBidiLevel.getBidiLevel());
+            showTextUni(contentStream, font, fontSize, textAndBidiLevel.getText(), textAndBidiLevel.getBidiLevel());
         }
     }
 

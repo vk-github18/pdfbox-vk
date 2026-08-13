@@ -39,6 +39,7 @@ import org.apache.pdfbox.pdmodel.PDResources;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDSimpleFont;
+import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.pdmodel.font.PDType3CharProc;
 import org.apache.pdfbox.pdmodel.font.PDType3Font;
 import org.apache.pdfbox.pdmodel.font.PDVectorFont;
@@ -501,7 +502,9 @@ class AppearanceGeneratorHelper
         try (PDAppearanceContentStream contents = new PDAppearanceContentStream(appearanceStream, output))
         {
             GlyphLayoutProcessorInterface glyphLayoutProcessor = field.getAcroForm().getGlyphLayoutProcessor();
-            contents.setGlyphLayoutProcessor(glyphLayoutProcessor);
+            if (glyphLayoutProcessor != null) {
+                contents.setGlyphLayoutProcessor(glyphLayoutProcessor);
+            }
 
             PDRectangle bbox = resolveBoundingBox(widget, appearanceStream);
             
@@ -528,7 +531,10 @@ class AppearanceGeneratorHelper
             contents.clip();
             
             // get the font
-            PDFont font = glyphLayoutProcessor.getFont(defaultAppearance.getFont());
+            PDFont font = defaultAppearance.getFont();
+            if (glyphLayoutProcessor != null && glyphLayoutProcessor.supportsFont(font)) {
+                ((PDType0Font)font).setGlyphLayoutProcessor(glyphLayoutProcessor);
+            }
             if (font == null)
             {
                 throw new IllegalArgumentException("font is null, check whether /DA entry is incomplete or incorrect");

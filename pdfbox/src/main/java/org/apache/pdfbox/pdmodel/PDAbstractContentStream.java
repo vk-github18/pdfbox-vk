@@ -101,7 +101,7 @@ abstract class PDAbstractContentStream implements ContentStreamForGlyphLayoutInt
 
     private final Map<PDType0Font, GsubWorker> gsubWorkerMap = new HashMap<>();
     private final GsubWorkerFactory gsubWorkerFactory = new GsubWorkerFactory();
-    private GlyphLayoutProcessorInterface glyphLayoutProcessor = new GlyphLayoutProcessorDefault();
+    private GlyphLayoutProcessorInterface glyphLayoutProcessor;
 
     /**
      * Create a new appearance stream.
@@ -127,7 +127,6 @@ abstract class PDAbstractContentStream implements ContentStreamForGlyphLayoutInt
      */
     public void setGlyphLayoutProcessor(GlyphLayoutProcessorInterface glyphLayoutProcessor)
     {
-        Objects.requireNonNull(glyphLayoutProcessor, "glyphLayoutProcessor must not be null");
         this.glyphLayoutProcessor = glyphLayoutProcessor;
     }
 
@@ -355,7 +354,7 @@ abstract class PDAbstractContentStream implements ContentStreamForGlyphLayoutInt
         }
         else
         {
-            showTextDefault(text);
+            showTextBasic(text);
         }
     }
 
@@ -365,7 +364,7 @@ abstract class PDAbstractContentStream implements ContentStreamForGlyphLayoutInt
      * @param text text to be shown
      * @throws IOException if an I/O exception occurs
      */
-    public void showTextDefault(String text) throws IOException {
+    protected void showTextBasic(String text) throws IOException {
         showTextInternal(text);
         writeBytes(ASCII_SPACE);
         writeOperator(OperatorName.SHOW_TEXT);

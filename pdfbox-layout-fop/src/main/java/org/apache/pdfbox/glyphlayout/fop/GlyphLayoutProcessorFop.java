@@ -100,10 +100,6 @@ public class GlyphLayoutProcessorFop extends AbstractGlyphLayoutProcessor implem
         return glyphLayoutFontLoaderFop.supportsFont(font);
     }
 
-    @Override
-    public PDFont getFont(PDFont font) {
-        return glyphLayoutFontLoaderFop.getFont(font);
-    }
 
     /**
      * Loads the font needed for layout

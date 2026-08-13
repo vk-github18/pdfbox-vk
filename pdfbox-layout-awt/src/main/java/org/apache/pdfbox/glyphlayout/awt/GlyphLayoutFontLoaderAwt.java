@@ -33,7 +33,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
-import org.apache.pdfbox.pdmodel.font.PDType0GlyphLayoutFont;
 
 /**
  * Loads the PDType0Font and awt.Font for GlyphLayoutProcessorAwt
@@ -49,7 +48,7 @@ public class GlyphLayoutFontLoaderAwt
     /**
      * Mapping from PDFBox font to AWT font
      */
-    private final Map<PDType0GlyphLayoutFont, Font> awtFontMap = new ConcurrentHashMap<>();
+    private final Map<PDType0Font, Font> awtFontMap = new ConcurrentHashMap<>();
 
     public GlyphLayoutFontLoaderAwt(GlyphLayoutProcessorAwt glyphLayoutProcessor) {
         this.glyphLayoutProcessor = glyphLayoutProcessor;
@@ -64,7 +63,7 @@ public class GlyphLayoutFontLoaderAwt
      * @throws IOException if font can not be loaded
      * @throws FontFormatException if the font is bad
      */
-    public PDType0GlyphLayoutFont loadFont(PDDocument pdDocument, InputStream inputStream)
+    public PDType0Font loadFont(PDDocument pdDocument, InputStream inputStream)
             throws IOException, FontFormatException
     {
         return loadFont(pdDocument, inputStream, true, null);
@@ -81,7 +80,7 @@ public class GlyphLayoutFontLoaderAwt
      * @throws IOException if font can not be loaded
      * @throws FontFormatException if the font is bad
      */
-    public PDType0GlyphLayoutFont loadFont(PDDocument pdDocument, InputStream inputStream, boolean embedSubset)
+    public PDType0Font loadFont(PDDocument pdDocument, InputStream inputStream, boolean embedSubset)
             throws IOException, FontFormatException
     {
         return loadFont(pdDocument, inputStream, embedSubset, null);
@@ -97,7 +96,7 @@ public class GlyphLayoutFontLoaderAwt
      * @throws IOException if font can not be loaded
      * @throws FontFormatException if the font is bad
      */
-    public PDType0GlyphLayoutFont loadFont(PDDocument pdDocument, InputStream inputStream, FontOptions fontOptions)
+    public PDType0Font loadFont(PDDocument pdDocument, InputStream inputStream, FontOptions fontOptions)
             throws IOException, FontFormatException
     {
         return loadFont(pdDocument, inputStream, true, fontOptions);
@@ -115,7 +114,7 @@ public class GlyphLayoutFontLoaderAwt
      * @throws IOException if font can not be loaded
      * @throws FontFormatException if the font is bad
      */
-    public PDType0GlyphLayoutFont loadFont(PDDocument pdDocument, InputStream inputStream, boolean embedSubset, FontOptions fontOptions)
+    public PDType0Font loadFont(PDDocument pdDocument, InputStream inputStream, boolean embedSubset, FontOptions fontOptions)
             throws IOException, FontFormatException
     {
         Objects.requireNonNull(inputStream, "InputStream must not be null");
@@ -123,7 +122,8 @@ public class GlyphLayoutFontLoaderAwt
         // Copy font stream into memory to read it twice for creation of PDType0Font and AWT Font
         try (ByteArrayInputStream bais = new ByteArrayInputStream(inputStream.readAllBytes()))
         {
-            PDType0GlyphLayoutFont pdType0Font = PDType0GlyphLayoutFont.load(glyphLayoutProcessor, pdDocument, bais, embedSubset);
+            PDType0Font pdType0Font = PDType0Font.load(pdDocument, bais, embedSubset);
+            pdType0Font.setGlyphLayoutProcessor(glyphLayoutProcessor);
             bais.reset();
             loadAwtFont(pdType0Font, bais, fontOptions);
             return pdType0Font;
@@ -139,7 +139,7 @@ public class GlyphLayoutFontLoaderAwt
      * @throws IOException if font can not be loaded
      * @throws FontFormatException if the font is bad
      */
-    protected void loadAwtFont(PDType0GlyphLayoutFont pdType0Font, InputStream inputStream, FontOptions fontOptions)
+    protected void loadAwtFont(PDType0Font pdType0Font, InputStream inputStream, FontOptions fontOptions)
             throws FontFormatException, IOException
     {
         if (fontOptions == null)
@@ -162,8 +162,8 @@ public class GlyphLayoutFontLoaderAwt
      */
     public boolean supportsFont(PDFont font)
     {
-        return (font instanceof PDType0GlyphLayoutFont)
-                && awtFontMap.containsKey((PDType0GlyphLayoutFont)font);
+        return (font instanceof PDType0Font)
+                && awtFontMap.containsKey((PDType0Font)font);
     }
 
     /**
@@ -174,19 +174,7 @@ public class GlyphLayoutFontLoaderAwt
      */
     protected Font getAwtFont(PDType0Font font)
     {
-        return font instanceof PDType0GlyphLayoutFont ? awtFontMap.get(font) : null;
-    }
-
-    /**
-     *
-     * @param font
-     * @return
-     */
-    public PDFont getFont(PDFont font) {
-        Optional<PDType0GlyphLayoutFont> pdType0GlyphLayoutFontOptional =
-                awtFontMap.keySet().stream().filter(k -> k.getFontDescriptor().equals(font.getFontDescriptor())).findFirst();
-
-        return pdType0GlyphLayoutFontOptional.isPresent() ?  pdType0GlyphLayoutFontOptional.get() : font;
+        return awtFontMap.get(font);
     }
 
     /**

@@ -30,14 +30,6 @@ public interface ContentStreamForGlyphLayoutInterface
     void showGlyphsWithPositioning(GlyphsAndPositions glyphsAndPositions) throws IOException;
 
     /**
-     * Shows the text - no glyph layout
-     *
-     * @param text text to be shown
-     * @throws IOException if an I/O exception occurs
-     */
-    void showTextDefault(String text) throws IOException;
-
-    /**
      * Shows the glyphs for the given glyph codes
      *
      * @param glyphCodes Array of glyph codes of the content font
