@@ -140,7 +140,7 @@ public class GlyphLayoutProcessorFop extends AbstractGlyphLayoutProcessor implem
     {
         TextAndGpa textAndGpa = computeGlyphsAndPositions(font, fontSize, text, bidiLevel);
         // PDType0Font.getStringWidth returns glyph widths in 1000-units. Convert to user space using font matrix and fontSize
-        float raw = font.getStringWidth(textAndGpa.getText());
+        float raw = font.getStringWidthBasic(textAndGpa.getText());
         float scaleX = font.getFontMatrix().getScaleX();
         return raw * scaleX * fontSize;
     }
