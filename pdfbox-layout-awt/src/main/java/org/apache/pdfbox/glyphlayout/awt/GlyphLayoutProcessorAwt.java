@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Objects;
 
+import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.AbstractGlyphLayoutProcessor;
 import org.apache.pdfbox.pdmodel.ContentStreamForGlyphLayoutInterface;
 import org.apache.pdfbox.pdmodel.GlyphLayoutProcessorInterface;
@@ -59,7 +60,9 @@ public class GlyphLayoutProcessorAwt extends AbstractGlyphLayoutProcessor implem
         this.glyphLayoutFontLoaderAwt = new GlyphLayoutFontLoaderAwt();
     }
 
-    /**
+
+
+        /**
      * Checks if glyphs needed for text are missing in awtFont
      *
      * @param text text to be checked

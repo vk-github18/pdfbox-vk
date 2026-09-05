@@ -17,6 +17,10 @@
 
 package org.apache.pdfbox.pdmodel;
 
+import org.apache.pdfbox.cos.COSDictionary;
+import org.apache.pdfbox.cos.COSName;
+import org.apache.pdfbox.cos.COSString;
+import org.apache.pdfbox.pdmodel.documentinterchange.markedcontent.PDPropertyList;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
 
 import java.io.IOException;
@@ -33,6 +37,18 @@ import java.util.Objects;
  */
 public abstract class AbstractGlyphLayoutProcessor implements GlyphLayoutProcessorInterface
 {
+    private final boolean useActualText;
+    public static class GlyphLayoutProcessorOptions {
+        private boolean useActualText;
+        public GlyphLayoutProcessorOptionsuseActualText() {
+            useActualText = true;
+            return this;
+        }
+        public getUseActualText() {
+            return useActualText;
+        }
+    }
+
     /**
      * Class for text and Bidi-Level
      */
@@ -88,6 +104,23 @@ public abstract class AbstractGlyphLayoutProcessor implements GlyphLayoutProcess
         return width;
     }
 
+    public AbstractGlyphLayoutProcessor(GlyphLayoutProcessorOptions options) {
+        useActualText = options.useActualText;
+    }
+
+
+
+    protected void beginMarkedContentForActualText(ContentStreamForGlyphLayoutInterface contentStream, String tag, String text) throws IOException {
+        COSDictionary dict = new COSDictionary();
+        dict.setItem(COSName.ACTUAL_TEXT, new COSString(text));
+        PDPropertyList propertyList = PDPropertyList.create(dict);
+        contentStream.beginMarkedContent(tag, propertyList);
+    }
+
+    protected  void endMarkedContent(ContentStreamForGlyphLayoutInterface contentStream) throws IOException {
+        contentStream.endMarkedContent();
+    }
+
     /**
      * Shows unidirectional text using glyph positioning (if needed)
      *
@@ -117,10 +150,16 @@ public abstract class AbstractGlyphLayoutProcessor implements GlyphLayoutProcess
     public void showText(ContentStreamForGlyphLayoutInterface contentStream, PDType0Font font, float fontSize, String text)
             throws IOException
     {
+        if (useActualText) {
+            beginMarkedContentForActualText(COSName.SPAN, text);
+        }
         List<TextAndBidiLevel> textAndBidiLevels = doBidiSplittingAndReordering(text);
         for (TextAndBidiLevel textAndBidiLevel:  textAndBidiLevels)
         {
             showTextUni(contentStream, font, fontSize, textAndBidiLevel.getText(), textAndBidiLevel.getBidiLevel());
+        }
+        if (useActualText) {
+            endMarkedContent();
         }
     }
 

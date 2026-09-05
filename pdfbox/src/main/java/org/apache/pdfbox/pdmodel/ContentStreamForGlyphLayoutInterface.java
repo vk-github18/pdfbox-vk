@@ -16,6 +16,8 @@
  */
 package org.apache.pdfbox.pdmodel;
 
+import org.apache.pdfbox.pdmodel.documentinterchange.markedcontent.PDPropertyList;
+
 import java.io.IOException;
 
 public interface ContentStreamForGlyphLayoutInterface
@@ -46,4 +48,8 @@ public interface ContentStreamForGlyphLayoutInterface
      * @throws IOException If the content stream could not be written.
      */
     void setTextRise(float rise) throws IOException;
+
+    void endMarkedContent();
+
+    void beginMarkedContent(String tag, PDPropertyList propertyList);
 }
