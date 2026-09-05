@@ -49,7 +49,20 @@ public interface ContentStreamForGlyphLayoutInterface
      */
     void setTextRise(float rise) throws IOException;
 
-    void endMarkedContent();
 
-    void beginMarkedContent(String tag, PDPropertyList propertyList);
+    /**
+     * Begin a marked content sequence with a reference to an entry in the page resources' Properties dictionary.
+     *
+     * @param tag the tag to be added to the content stream
+     * @param propertyList property list to be added to the content stream
+     * @throws IOException If the content stream could not be written
+     */
+    void beginMarkedContent(String tag, PDPropertyList propertyList) throws IOException;
+
+    /**
+     * End a marked content sequence.
+     *
+     * @throws IOException If the content stream could not be written
+     */
+    void endMarkedContent() throws IOException;
 }
