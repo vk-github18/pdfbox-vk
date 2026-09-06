@@ -16,7 +16,6 @@
  */
 package org.apache.pdfbox.glyphlayout.fop;
 
-import java.awt.*;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -96,22 +95,20 @@ class GlyphLayoutDin91379Test extends TestBase
     /**
      * Test, no ActualText
      * @throws IOException
-     * @throws FontFormatException
      * @throws URISyntaxException
      */
     @Test
-    void testGlyphLayoutDin91379NoActualText() throws IOException, FontFormatException, URISyntaxException {
+    void testGlyphLayoutDin91379NoActualText() throws IOException, URISyntaxException {
         testGlyphLayoutDin91379(false, "");
     }
 
     /**
      * Test with ActualText
      * @throws IOException
-     * @throws FontFormatException
      * @throws URISyntaxException
      */
     @Test
-    void testGlyphLayoutDin91379UseActualText() throws IOException, FontFormatException, URISyntaxException {
+    void testGlyphLayoutDin91379UseActualText() throws IOException, URISyntaxException {
         testGlyphLayoutDin91379(true, "_ActualText");
     }
 
@@ -119,10 +116,9 @@ class GlyphLayoutDin91379Test extends TestBase
      * Test GlyphLayoutProcessorAwt with letters and sequences from DIN 91379
      * @param useActualText
      * @throws IOException
-     * @throws FontFormatException
      * @throws URISyntaxException
      */
-    void testGlyphLayoutDin91379(boolean useActualText, String sActualText) throws IOException, FontFormatException, URISyntaxException
+    void testGlyphLayoutDin91379(boolean useActualText, String sActualText) throws IOException, URISyntaxException
     {
         AbstractGlyphLayoutProcessor.GlyphLayoutProcessorOptions options = new AbstractGlyphLayoutProcessor.GlyphLayoutProcessorOptions();
         if (useActualText) {
