@@ -26,6 +26,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -123,7 +124,11 @@ class GlyphLayoutDin91379Test extends TestBase
      */
     void testGlyphLayoutDin91379(boolean useActualText, String sActualText) throws IOException, FontFormatException, URISyntaxException
     {
-        GlyphLayoutProcessorFop glyphLayoutProcessor = new GlyphLayoutProcessorFop(new AbstractGlyphLayoutProcessor.GlyphLayoutProcessorOptions().useActualText());
+        AbstractGlyphLayoutProcessor.GlyphLayoutProcessorOptions options = new AbstractGlyphLayoutProcessor.GlyphLayoutProcessorOptions();
+        if (useActualText) {
+            options.useActualText();
+        }
+        GlyphLayoutProcessorFop glyphLayoutProcessor = new GlyphLayoutProcessorFop(options);
 
         String outputName = String.format("GlyphLayoutDIN91379%s.pdf", sActualText);
         String outputPDFFilename = "target/" + outputName;
@@ -163,7 +168,7 @@ class GlyphLayoutDin91379Test extends TestBase
                 os.write (0xBB);
                 os.write (0xBF);
 
-                try (Writer writer = new BufferedWriter(new OutputStreamWriter(os, "utf-8")))
+                try (Writer writer = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8)))
                 {
                     //TODO compare this output with the input, like in TextStripper test
                     // Not yet correct as of 4.7.2026
@@ -188,7 +193,7 @@ class GlyphLayoutDin91379Test extends TestBase
             if (!line.isEmpty())
             {
                 showCompositesLine(cs, font, fontSize, x, y, line);
-                y -= fontSize * 1.5;
+                y -= fontSize * 1.5f;
             }
         }
     }
