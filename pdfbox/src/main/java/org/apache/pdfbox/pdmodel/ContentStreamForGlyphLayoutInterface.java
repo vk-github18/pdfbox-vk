@@ -16,6 +16,7 @@
  */
 package org.apache.pdfbox.pdmodel;
 
+import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.documentinterchange.markedcontent.PDPropertyList;
 
 import java.io.IOException;
@@ -57,7 +58,7 @@ public interface ContentStreamForGlyphLayoutInterface
      * @param propertyList property list to be added to the content stream
      * @throws IOException If the content stream could not be written
      */
-    void beginMarkedContent(String tag, PDPropertyList propertyList) throws IOException;
+    void beginMarkedContent(COSName tag, PDPropertyList propertyList) throws IOException;
 
     /**
      * End a marked content sequence.

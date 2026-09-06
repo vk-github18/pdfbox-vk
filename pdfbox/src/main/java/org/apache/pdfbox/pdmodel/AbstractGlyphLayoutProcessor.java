@@ -50,7 +50,7 @@ public abstract class AbstractGlyphLayoutProcessor implements GlyphLayoutProcess
         private boolean useActualText;
 
         /**
-         * Switeh usage of ActualText on
+         * Turn usage of ActualText on
          * @return this
          */
         public GlyphLayoutProcessorOptions useActualText() {
@@ -150,7 +150,7 @@ public abstract class AbstractGlyphLayoutProcessor implements GlyphLayoutProcess
         COSDictionary dict = new COSDictionary();
         dict.setItem(COSName.ACTUAL_TEXT, new COSString(text));
         PDPropertyList propertyList = PDPropertyList.create(dict);
-        contentStream.beginMarkedContent(StandardStructureTypes.SPAN, propertyList);
+        contentStream.beginMarkedContent(COSName.SPAN, propertyList);
     }
 
     /**
