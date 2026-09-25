@@ -143,14 +143,15 @@ public class GlyphLayoutBidiTest extends TestBase
                 y = showLine(cs, arabicFont, fontSize, x, y, TEXT1);
                 printStringAsHex("TEXT1", TEXT1);
                 writtenText = cs.getText();
-                printStringAsHex("TEXT1", TEXT1);
+                printStringAsHex("writtenText", writtenText);
+                assertEquals(TEXT1, writtenText, "TEXT1 ungleich writtenText");
 
                 //DBG showLine(cs, new PDType0Font[]{ lgcFont, arabicFont, lgcFont }, fontSize, x, y, new String[]{ TEXT2, TEXT3, TEXT4 });
             }
             doc.save(outputPDFFilename);
         }
 
-        checkRenderIdent(outputBaseName + ".pdf");
+        //DBG checkRenderIdent(outputBaseName + ".pdf");
 
         // Extract text
         try (PDDocument doc = Loader.loadPDF(new File(outputPDFFilename)))
@@ -158,6 +159,7 @@ public class GlyphLayoutBidiTest extends TestBase
             assertEquals(1, doc.getNumberOfPages());
 
             String strippedExtractedText = getAndWriteExtractedText(doc, outputTextFilename);
+            printStringAsHex("strippedExtractedText", strippedExtractedText);
 
             assertEquals(writtenText, strippedExtractedText, "Extracted Text should equal the written text");
         }
