@@ -159,7 +159,7 @@ public class GlyphLayoutBidiTest extends TestBase
             assertEquals(1, doc.getNumberOfPages());
 
             String strippedExtractedText = getAndWriteExtractedText(doc, outputTextFilename);
-            printStringAsHex("strippedExtractedText", strippedExtractedText);
+            printStringAsHex("strippedExtractedText", strippedExtractedText); // ActualText sieht gut aus, warum nicht so extrahiert?
 
             assertEquals(writtenText, strippedExtractedText, "Extracted Text should equal the written text");
         }

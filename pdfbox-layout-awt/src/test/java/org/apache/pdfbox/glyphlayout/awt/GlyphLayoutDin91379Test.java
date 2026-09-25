@@ -135,6 +135,7 @@ class GlyphLayoutDin91379Test extends TestBase
         String outputTextFilename = "target/" + outputBaseName + ".txt";
 
         float fontSize = 12.0f;
+        String writtenText;
 
         try (PDDocument doc = new PDDocument())
         {
@@ -145,13 +146,14 @@ class GlyphLayoutDin91379Test extends TestBase
 
             PDPage page = new PDPage();
             doc.addPage(page);
-            try (PDPageContentStream cs = new PDPageContentStream(doc, page))
+            try (TestPDPageContentStream cs = new TestPDPageContentStream(doc, page))
             {
                 cs.setGlyphLayoutProcessor(glyphLayoutProcessor);
 
                 float x = page.getBBox().getLowerLeftX() + fontSize;
                 float y = page.getBBox().getUpperRightY() - fontSize;
                 showComposites(cs, font, fontSize, x, y, LATIN_CHARS_DIN_91379);
+                writtenText = cs.getText();
             }
             doc.save(outputPDFFilename);
         }
@@ -161,22 +163,10 @@ class GlyphLayoutDin91379Test extends TestBase
         try (PDDocument doc = Loader.loadPDF(new File(outputPDFFilename)))
         {
             assertEquals(1, doc.getNumberOfPages());
-            
-            PDFTextStripper stripper = new PDFTextStripper();
-            String s = stripper.getText(doc);
-            try (OutputStream os = new FileOutputStream(outputTextFilename))
-            {
-                os.write (0xEF);
-                os.write (0xBB);
-                os.write (0xBF);
 
-                try (Writer writer = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8)))
-                {
-                    //TODO compare this output with the input, like in TextStripper test
-                    // Not yet correct as of 4.7.2026
-                    writer.write(s);
-                }
-            }
+            String strippedExtractedText = getAndWriteExtractedText(doc, outputTextFilename);
+
+            assertEquals(writtenText, strippedExtractedText, "Extracted Text should equal the written text");
         }
     }
 
