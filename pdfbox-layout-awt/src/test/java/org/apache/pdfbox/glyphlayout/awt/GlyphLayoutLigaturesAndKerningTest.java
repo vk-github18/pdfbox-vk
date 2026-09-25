@@ -18,16 +18,10 @@
 package org.apache.pdfbox.glyphlayout.awt;
 
 import java.awt.FontFormatException;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 
 import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -35,7 +29,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.AbstractGlyphLayoutProcessor;
-import org.apache.pdfbox.text.PDFTextStripper;
 import org.junit.jupiter.api.Test;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -143,7 +136,7 @@ class GlyphLayoutLigaturesAndKerningTest extends TestBase
         String lohitBengaliPath = "/ttf/Lohit-Bengali.ttf";
 
         float fontSize = 12.0f;
-        String text = "";
+        String writtenText;
 
         try (PDDocument doc = new PDDocument())
         {
@@ -214,7 +207,7 @@ class GlyphLayoutLigaturesAndKerningTest extends TestBase
                 cs.moveTo(x, 676);
                 cs.lineTo(x + f4, 676);
                 cs.stroke();
-                text = cs.getText();
+                writtenText = cs.getText();
             }
             doc.save(outputPDFFilename);
         }
@@ -226,29 +219,10 @@ class GlyphLayoutLigaturesAndKerningTest extends TestBase
         {
             assertEquals(1, doc.getNumberOfPages());
 
-            PDFTextStripper stripper = new PDFTextStripper();
-            String s = stripper.getText(doc);
-            String sStripped = s.replaceAll(" +"," ")
-                    .replaceAll(" *\\n", "\n")
-                    .strip();
+            String strippedExtractedText = getAndWriteExtractedText(doc, outputTextFilename);
 
-            assertEquals(text, sStripped, "Extracted Text should equal the written text");
-
-            try (OutputStream os = new FileOutputStream(outputTextFilename))
-            {
-                os.write (0xEF);
-                os.write (0xBB);
-                os.write (0xBF);
-
-                try (Writer writer = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8)))
-                {
-                    //TODO compare this output with the input, like in TextStripper test
-                    // Not yet correct as of 4.7.2026
-                    writer.write(s);
-                }
-            }
+            assertEquals(writtenText, strippedExtractedText, "Extracted Text should equal the written text");
         }
-
     }
 
     /**
@@ -257,7 +231,6 @@ class GlyphLayoutLigaturesAndKerningTest extends TestBase
     private float showComposites(PDPageContentStream cs, PDType0Font font, float fontSize,
                                  float x, float y, String s) throws IOException
     {
-
         s = s.replace("\t", "    ");
         String[] lines = s.split("[\\n]");
 

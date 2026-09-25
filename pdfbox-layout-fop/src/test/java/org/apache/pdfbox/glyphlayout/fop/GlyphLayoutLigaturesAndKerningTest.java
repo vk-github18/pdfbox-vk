@@ -27,11 +27,17 @@ package org.apache.pdfbox.glyphlayout.fop;
  * @author Volker Kunert
  */
 
-import java.io.IOException;
+import java.awt.*;
+import java.io.*;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.pdmodel.AbstractGlyphLayoutProcessor;
+import org.apache.pdfbox.text.PDFTextStripper;
 import org.junit.jupiter.api.Test;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -77,20 +83,55 @@ class GlyphLayoutLigaturesAndKerningTest extends TestBase
             }
         }
     }
-  
-    @Test
-    void testLigaturesAndKerning() throws IOException, URISyntaxException
-    {
-        GlyphLayoutProcessorFop glyphLayoutProcessor = new GlyphLayoutProcessorFop();
 
-        String outputName = "GlyphLayoutLigaturesAndKerning.pdf";
-        String outputFilename = "target/" + outputName;
+    /**
+     * Test, no ActualText
+     * @throws IOException
+     * @throws FontFormatException
+     * @throws URISyntaxException
+     */
+    @Test
+    void testLigaturesAndKerningNoActualText() throws IOException, FontFormatException, URISyntaxException {
+        testLigaturesAndKerning(false, "");
+    }
+
+    /**
+     * Test with ActualText
+     * @throws IOException
+     * @throws FontFormatException
+     * @throws URISyntaxException
+     */
+    @Test
+    void testLigaturesAndKerningUseActualText() throws IOException, FontFormatException, URISyntaxException {
+        testLigaturesAndKerning(true, "_ActualText");
+    }
+
+    /**
+     * Test ligatures and kerning
+     * @param useActualText
+     * @throws IOException
+     * @throws FontFormatException
+     * @throws URISyntaxException
+     */
+    void testLigaturesAndKerning(boolean useActualText, String sActualText) throws IOException, FontFormatException, URISyntaxException
+    {
+        AbstractGlyphLayoutProcessor.GlyphLayoutProcessorOptions options = new AbstractGlyphLayoutProcessor.GlyphLayoutProcessorOptions();
+        if (useActualText) {
+            options.useActualText();
+        }
+        GlyphLayoutProcessorFop glyphLayoutProcessor = new GlyphLayoutProcessorFop(options);
+
+        String outputBaseName = String.format("GlyphLayoutLigaturesAndKerning%s", sActualText);
+        String outputPDFFilename = "target/" + outputBaseName + ".pdf";
+        String outputTextFilename = String.format("target/" + outputBaseName + ".txt");
+
         String firaPath = "/ttf/FiraCode-Regular.ttf";
         String dejavuPath = "/ttf/DejaVuSans.ttf"; // ligatures not in Liberation nor in Arimo
         String thaiPath = "/ttf/NotoSansThai-Regular.ttf";
         String lohitBengaliPath = "/ttf/Lohit-Bengali.ttf";
 
         float fontSize = 12.0f;
+        String writtenText;
 
         try (PDDocument doc = new PDDocument())
         {
@@ -111,7 +152,7 @@ class GlyphLayoutLigaturesAndKerningTest extends TestBase
             
             PDPage page = new PDPage();
             doc.addPage(page);
-            try (PDPageContentStream cs = new PDPageContentStream(doc, page))
+            try (TestPDPageContentStream cs = new TestPDPageContentStream(doc, page))
             {
                 cs.setGlyphLayoutProcessor(glyphLayoutProcessor);
                 
@@ -135,10 +176,24 @@ class GlyphLayoutLigaturesAndKerningTest extends TestBase
                 cs.showText(" ");
                 cs.showText(BENGALI_STRING2);
                 cs.endText();
+                writtenText = cs.getText();
             }
-            doc.save(outputFilename);
+            doc.save(outputPDFFilename);
         }
-        checkRenderIdent(outputName);
+
+        checkRenderIdent(outputBaseName + ".pdf");
+
+        // Extract text
+        try (PDDocument doc = Loader.loadPDF(new File(outputPDFFilename)))
+        {
+            assertEquals(1, doc.getNumberOfPages());
+
+            String strippedExtractedText = getAndWriteExtractedText(doc, outputTextFilename);
+
+            assertEquals(writtenText, strippedExtractedText, "Extracted Text should equal the written text");
+
+            assertEquals(writtenText, strippedExtractedText, "Extracted Text should equal the written text");
+        }
     }
 
     /**

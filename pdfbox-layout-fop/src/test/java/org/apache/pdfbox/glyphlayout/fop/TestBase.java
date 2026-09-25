@@ -20,16 +20,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.rendering.PDFRenderer;
+import org.apache.pdfbox.text.PDFTextStripper;
 
 /**
  *
@@ -73,6 +73,31 @@ class TestBase
             }
         }
     }
+
+
+    static String getAndWriteExtractedText(PDDocument doc, String outputTextFilename) throws IOException {
+        PDFTextStripper stripper = new PDFTextStripper();
+        String extractedText = stripper.getText(doc);
+        String strippedExtractedText = extractedText.replaceAll(" +"," ")
+                .replaceAll(" *\\n", "\n")
+                .strip();
+
+        try (OutputStream os = new FileOutputStream(outputTextFilename))
+        {
+            os.write (0xEF);
+            os.write (0xBB);
+            os.write (0xBF);
+
+            try (Writer writer = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8)))
+            {
+                //TODO compare this output with the input, like in TextStripper test
+                // Not yet correct as of 4.7.2026
+                writer.write(extractedText);
+            }
+        }
+        return strippedExtractedText;
+    }
+
 
     /**
      * Create the PDType0Font font

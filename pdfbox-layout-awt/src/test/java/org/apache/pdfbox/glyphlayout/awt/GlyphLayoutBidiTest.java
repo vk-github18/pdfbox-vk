@@ -16,16 +16,22 @@
  */
 package org.apache.pdfbox.glyphlayout.awt;
 
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.pdmodel.AbstractGlyphLayoutProcessor;
 import org.junit.jupiter.api.Test;
 
 import java.awt.FontFormatException;
+import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Examples for bidirectional text with GlyphLayoutProcessorAwt
@@ -73,17 +79,52 @@ public class GlyphLayoutBidiTest extends TestBase
         return y;
     }
 
+    /**
+     * Test, no ActualText
+     * @throws IOException
+     * @throws FontFormatException
+     * @throws URISyntaxException
+     */
     @Test
-    void testGlyphLayoutBidi() throws IOException, FontFormatException, URISyntaxException
-    {
-        GlyphLayoutProcessorAwt glyphLayoutProcessorAwt = new GlyphLayoutProcessorAwt();
+    void testGlyphLayoutBidiNoActualText() throws IOException, FontFormatException, URISyntaxException {
+        testGlyphLayoutBidi(false, "");
+    }
 
-        String outputName = "GlyphLayoutBidi.pdf";
-        String outputFilename = "target/" + outputName;
+    /**
+     * Test with ActualText
+     * @throws IOException
+     * @throws FontFormatException
+     * @throws URISyntaxException
+     */
+    @Test
+    void testGlyphLayoutBidiUseActualText() throws IOException, FontFormatException, URISyntaxException {
+        testGlyphLayoutBidi(true, "_ActualText");
+    }
+
+    /**
+     * Test ligatures and kerning
+     * @param useActualText
+     * @throws IOException
+     * @throws FontFormatException
+     * @throws URISyntaxException
+     */
+    void testGlyphLayoutBidi(boolean useActualText, String sActualText) throws IOException, FontFormatException, URISyntaxException
+    {
+        AbstractGlyphLayoutProcessor.GlyphLayoutProcessorOptions options = new AbstractGlyphLayoutProcessor.GlyphLayoutProcessorOptions();
+        if (useActualText) {
+            options.useActualText();
+        }
+        GlyphLayoutProcessorAwt glyphLayoutProcessorAwt = new GlyphLayoutProcessorAwt(options);
+
+        String outputBaseName = String.format("GlyphLayoutBidi%s", sActualText);
+        String outputPDFFilename = "target/" + outputBaseName + ".pdf";
+        String outputTextFilename = String.format("target/" + outputBaseName + ".txt");
+
         String arabicPath = "/ttf/NotoSansArabic-Regular.ttf";
         String lgcPath = "/ttf/DejaVuSans.ttf";
 
         float fontSize = 12.0f;
+        String writtenText;
 
         try (PDDocument doc = new PDDocument())
         {
@@ -92,7 +133,7 @@ public class GlyphLayoutBidiTest extends TestBase
 
             PDPage page = new PDPage();
             doc.addPage(page);
-            try (PDPageContentStream cs = new PDPageContentStream(doc, page))
+            try (TestPDPageContentStream cs = new TestPDPageContentStream(doc, page))
             {
                 cs.setGlyphLayoutProcessor(glyphLayoutProcessorAwt);
                 
@@ -100,10 +141,38 @@ public class GlyphLayoutBidiTest extends TestBase
                 float y = page.getBBox().getUpperRightY() - fontSize;
                 
                 y = showLine(cs, arabicFont, fontSize, x, y, TEXT1);
-                showLine(cs, new PDType0Font[]{ lgcFont, arabicFont, lgcFont }, fontSize, x, y, new String[]{ TEXT2, TEXT3, TEXT4 });
+                printStringAsHex("TEXT1", TEXT1);
+                writtenText = cs.getText();
+                printStringAsHex("TEXT1", TEXT1);
+
+                //DBG showLine(cs, new PDType0Font[]{ lgcFont, arabicFont, lgcFont }, fontSize, x, y, new String[]{ TEXT2, TEXT3, TEXT4 });
             }
-            doc.save(outputFilename);
+            doc.save(outputPDFFilename);
         }
-        checkRenderIdent(outputName);
+
+        checkRenderIdent(outputBaseName + ".pdf");
+
+        // Extract text
+        try (PDDocument doc = Loader.loadPDF(new File(outputPDFFilename)))
+        {
+            assertEquals(1, doc.getNumberOfPages());
+
+            String strippedExtractedText = getAndWriteExtractedText(doc, outputTextFilename);
+
+            assertEquals(writtenText, strippedExtractedText, "Extracted Text should equal the written text");
+        }
+    }
+
+    private static void printStringAsHex(String name, String wert) {
+        System.out.println(name +" "+ wert);
+        byte[] bytes = wert.getBytes(StandardCharsets.UTF_16);
+        int i=0;
+        for(int b: bytes) {
+            System.out.printf("%02x", b);
+            if(i++%2==1) {
+                System.out.print(" ");
+            }
+        }
+        System.out.println();
     }
 }
