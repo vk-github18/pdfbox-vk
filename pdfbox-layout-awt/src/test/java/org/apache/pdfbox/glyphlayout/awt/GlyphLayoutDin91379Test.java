@@ -123,9 +123,9 @@ class GlyphLayoutDin91379Test extends TestBase
         }
         GlyphLayoutProcessorAwt glyphLayoutProcessor = new GlyphLayoutProcessorAwt(options);
 
-        String outputBaseName = String.format("GlyphLayoutDIN91379%s", sActualText);
-        String outputPDFFilename = "target/" + outputBaseName + ".pdf";
-        String outputTextFilename = "target/" + outputBaseName + ".txt";
+        String outputBaseName = "GlyphLayoutDIN91379%s" + sActualText;
+        String outputPDFFilePath = "target/" + outputBaseName + ".pdf";
+        String outputTextFilePath = "target/" + outputBaseName + ".txt";
 
         float fontSize = 12.0f;
         String writtenText;
@@ -148,16 +148,16 @@ class GlyphLayoutDin91379Test extends TestBase
                 showComposites(cs, font, fontSize, x, y, LATIN_CHARS_DIN_91379);
                 writtenText = cs.getText();
             }
-            doc.save(outputPDFFilename);
+            doc.save(outputPDFFilePath);
         }
         checkRenderIdent(outputBaseName + ".pdf");
 
         // Extract text
-        try (PDDocument doc = Loader.loadPDF(new File(outputPDFFilename)))
+        try (PDDocument doc = Loader.loadPDF(new File(outputPDFFilePath)))
         {
             assertEquals(1, doc.getNumberOfPages());
 
-            String strippedExtractedText = getAndWriteExtractedText(doc, outputTextFilename);
+            String strippedExtractedText = getAndWriteExtractedText(doc, outputTextFilePath);
 
             assertEquals(writtenText, strippedExtractedText, "Extracted Text should equal the written text");
         }

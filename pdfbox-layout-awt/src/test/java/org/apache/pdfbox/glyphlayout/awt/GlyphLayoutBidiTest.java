@@ -116,9 +116,9 @@ public class GlyphLayoutBidiTest extends TestBase
         }
         GlyphLayoutProcessorAwt glyphLayoutProcessorAwt = new GlyphLayoutProcessorAwt(options);
 
-        String outputBaseName = String.format("GlyphLayoutBidi%s", sActualText);
-        String outputPDFFilename = "target/" + outputBaseName + ".pdf";
-        String outputTextFilename = String.format("target/" + outputBaseName + ".txt");
+        String outputBaseName = "GlyphLayoutBidi" + sActualText;
+        String outputPDFFilePath = "target/" + outputBaseName + ".pdf";
+        String outputTextFilePath = "target/" + outputBaseName + ".txt";
 
         String arabicPath = "/ttf/NotoSansArabic-Regular.ttf";
         String lgcPath = "/ttf/DejaVuSans.ttf";
@@ -148,17 +148,17 @@ public class GlyphLayoutBidiTest extends TestBase
 
                 //DBG showLine(cs, new PDType0Font[]{ lgcFont, arabicFont, lgcFont }, fontSize, x, y, new String[]{ TEXT2, TEXT3, TEXT4 });
             }
-            doc.save(outputPDFFilename);
+            doc.save(outputPDFFilePath);
         }
 
         //DBG checkRenderIdent(outputBaseName + ".pdf");
 
         // Extract text
-        try (PDDocument doc = Loader.loadPDF(new File(outputPDFFilename)))
+        try (PDDocument doc = Loader.loadPDF(new File(outputPDFFilePath)))
         {
             assertEquals(1, doc.getNumberOfPages());
 
-            String strippedExtractedText = getAndWriteExtractedText(doc, outputTextFilename);
+            String strippedExtractedText = getAndWriteExtractedText(doc, outputTextFilePath);
             printStringAsHex("strippedExtractedText", strippedExtractedText); // ActualText sieht gut aus, warum nicht so extrahiert?
 
             assertEquals(writtenText, strippedExtractedText, "Extracted Text should equal the written text");

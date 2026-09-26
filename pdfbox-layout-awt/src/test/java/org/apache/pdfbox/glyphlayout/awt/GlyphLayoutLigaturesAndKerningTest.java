@@ -125,9 +125,9 @@ class GlyphLayoutLigaturesAndKerningTest extends TestBase
         GlyphLayoutProcessorAwt glyphLayoutProcessor = new GlyphLayoutProcessorAwt(options);
 
 
-        String outputBaseName = String.format("GlyphLayoutLigaturesAndKerning%s", sActualText);
-        String outputPDFFilename = "target/" + outputBaseName + ".pdf";
-        String outputTextFilename = String.format("target/" + outputBaseName + ".txt");
+        String outputBaseName = "GlyphLayoutLigaturesAndKerning%s" + sActualText;
+        String outputPDFFilePath = "target/" + outputBaseName + ".pdf";
+        String outputTextFilePath = "target/" + outputBaseName + ".txt";
 
 
         String firaPath = "/ttf/FiraCode-Regular.ttf";
@@ -209,17 +209,17 @@ class GlyphLayoutLigaturesAndKerningTest extends TestBase
                 cs.stroke();
                 writtenText = cs.getText();
             }
-            doc.save(outputPDFFilename);
+            doc.save(outputPDFFilePath);
         }
 
         checkRenderIdent(outputBaseName + ".pdf");
 
         // Extract text
-        try (PDDocument doc = Loader.loadPDF(new File(outputPDFFilename)))
+        try (PDDocument doc = Loader.loadPDF(new File(outputPDFFilePath)))
         {
             assertEquals(1, doc.getNumberOfPages());
 
-            String strippedExtractedText = getAndWriteExtractedText(doc, outputTextFilename);
+            String strippedExtractedText = getAndWriteExtractedText(doc, outputTextFilePath);
 
             assertEquals(writtenText, strippedExtractedText, "Extracted Text should equal the written text");
         }
