@@ -24,7 +24,6 @@ import java.awt.FontFormatException;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -151,7 +150,7 @@ public class GlyphLayoutBidiTest extends TestBase
             doc.save(outputPDFFilePath);
         }
 
-        //DBG checkRenderIdent(outputBaseName + ".pdf");
+        checkRenderIdent(outputBaseName + ".pdf");
 
         // Extract text
         try (PDDocument doc = Loader.loadPDF(new File(outputPDFFilePath)))
@@ -159,22 +158,17 @@ public class GlyphLayoutBidiTest extends TestBase
             assertEquals(1, doc.getNumberOfPages());
 
             String strippedExtractedText = getAndWriteExtractedText(doc, outputTextFilePath);
-            printStringAsHex("strippedExtractedText", strippedExtractedText); // ActualText sieht gut aus, warum nicht so extrahiert?
+            printStringAsHex("strippedExtractedText", strippedExtractedText); // ActualText looksk good, why not extracted as is?
 
             assertEquals(writtenText, strippedExtractedText, "Extracted Text should equal the written text");
         }
     }
 
-    private static void printStringAsHex(String name, String wert) {
-        System.out.println(name +" "+ wert);
-        byte[] bytes = wert.getBytes(StandardCharsets.UTF_16);
-        int i=0;
-        for(int b: bytes) {
-            System.out.printf("%02x", b);
-            if(i++%2==1) {
-                System.out.print(" ");
-            }
-        }
-        System.out.println();
+    @Test
+    public void testUTF16StringToString() {
+        String hexString = "FEFF0646062D06460020062706440622064600200641064A00200634064706310020063106450636062706460020003100340034003700200647062C0631064A";
+        assertEquals(utf16HexToString(hexString), "نحن الآن في شهر رمضان 1447 هجري", "String from hex numbers in ActualText should equal written Text");
     }
+
+
 }
