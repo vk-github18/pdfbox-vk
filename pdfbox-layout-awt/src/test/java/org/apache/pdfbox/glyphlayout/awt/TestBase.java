@@ -106,6 +106,7 @@ class TestBase
 
     static String getAndWriteExtractedText(PDDocument doc, String outputTextFilename) throws IOException {
         PDFTextStripper stripper = new PDFTextStripper();
+        stripper.setReorder(false);
         String extractedText = stripper.getText(doc);
         String strippedExtractedText = extractedText.replaceAll(" +"," ")
                 .replaceAll(" *\\n", "\n")

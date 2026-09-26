@@ -163,6 +163,15 @@ public class PDFTextStripper extends LegacyPDFStreamEngine
     private boolean firstActualTextPosition = false; 
     private String actualText = null;
 
+    private boolean reorder = true;
+
+    /**
+     * Use visual reordering if <code>reorder</code> is <code>true</code>
+     */
+    public void setReorder(boolean reorder) {
+        this.reorder = reorder;
+    }
+
     /**
      * The charactersByArticle is used to extract text by article divisions. For example a PDF that has two columns like
      * a newspaper, we want to extract the first column and then the second column. In this example the PDF would have 2
@@ -1905,6 +1914,10 @@ public class PDFTextStripper extends LegacyPDFStreamEngine
      */
     private String handleDirection(String word)
     {
+        if (!reorder) {
+            return word;
+        }
+
         Bidi bidi = new Bidi(word, Bidi.DIRECTION_DEFAULT_LEFT_TO_RIGHT);
 
         // if there is pure LTR text no need to process further
@@ -2124,7 +2137,11 @@ public class PDFTextStripper extends LegacyPDFStreamEngine
         else
         {
             TextPosition text = item.getTextPosition();
-            lineBuilder.append(text.getVisuallyOrderedUnicode());
+            if (reorder) {
+                lineBuilder.append(text.getVisuallyOrderedUnicode());
+            } else {
+                lineBuilder.append(text.getUnicode());
+            }
             wordPositions.add(text);
         }
         return lineBuilder;
