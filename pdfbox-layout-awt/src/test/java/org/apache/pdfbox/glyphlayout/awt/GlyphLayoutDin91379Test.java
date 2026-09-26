@@ -157,7 +157,8 @@ class GlyphLayoutDin91379Test extends TestBase
         {
             assertEquals(1, doc.getNumberOfPages());
 
-            String strippedExtractedText = getAndWriteExtractedText(doc, outputTextFilePath);
+            boolean reorder = !useActualText; // ActualText must not be reordered
+            String strippedExtractedText = getAndWriteExtractedText(doc, outputTextFilePath, reorder);
 
             assertEquals(writtenText, strippedExtractedText, "Extracted Text should equal the written text");
         }

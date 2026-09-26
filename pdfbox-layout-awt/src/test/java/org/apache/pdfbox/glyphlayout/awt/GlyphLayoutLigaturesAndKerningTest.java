@@ -218,7 +218,8 @@ class GlyphLayoutLigaturesAndKerningTest extends TestBase
         {
             assertEquals(1, doc.getNumberOfPages());
 
-            String strippedExtractedText = getAndWriteExtractedText(doc, outputTextFilePath);
+            boolean reorder = !useActualText; // ActualText must not be reordered
+            String strippedExtractedText = getAndWriteExtractedText(doc, outputTextFilePath, reorder);
 
             assertEquals(writtenText, strippedExtractedText, "Extracted Text should equal the written text");
         }
@@ -231,7 +232,7 @@ class GlyphLayoutLigaturesAndKerningTest extends TestBase
                             float x, float y, String s) throws IOException
     {
         s = s.replace("\t", "    ");
-        String[] lines = s.split("[\\n]");
+        String[] lines = s.split("\\n");
 
         float height = font.getBoundingBox().getHeight();
 

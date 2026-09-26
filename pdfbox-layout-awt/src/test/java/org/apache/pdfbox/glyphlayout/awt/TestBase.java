@@ -26,7 +26,6 @@ import java.util.Objects;
 
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.text.PDFTextStripper;
@@ -104,9 +103,9 @@ class TestBase
     }
 
 
-    static String getAndWriteExtractedText(PDDocument doc, String outputTextFilename) throws IOException {
+    static String getAndWriteExtractedText(PDDocument doc, String outputTextFilename, boolean reorder) throws IOException {
         PDFTextStripper stripper = new PDFTextStripper();
-        stripper.setReorder(false);
+        stripper.setReorder(reorder);
         String extractedText = stripper.getText(doc);
         String strippedExtractedText = extractedText.replaceAll(" +"," ")
                 .replaceAll(" *\\n", "\n")
