@@ -152,8 +152,8 @@ class TestBase
     /*
      * show one line
      */
-    static void showCompositesLine(PDPageContentStream cs, PDType0Font font, float fontSize,
-            float x, float y, String line) throws IOException
+    static void showOneLine(TestPDPageContentStream cs, PDType0Font font, float fontSize,
+                            float x, float y, String line) throws IOException
     {
         cs.beginText();
         cs.setFont(font, fontSize);

@@ -47,7 +47,7 @@ public class GlyphLayoutBidiTest extends TestBase
     /*
      * show one line
      */
-    private float showLine(PDPageContentStream cs, PDType0Font font, float fontSize,
+    private float showLine(TestPDPageContentStream cs, PDType0Font font, float fontSize,
             float x, float y, String text) throws IOException
     {
         return showLine(cs, new PDType0Font[]{font}, fontSize, x, y, new String[]{text});
@@ -56,7 +56,7 @@ public class GlyphLayoutBidiTest extends TestBase
     /*
      * show one line
      */
-    private float showLine(PDPageContentStream cs, PDType0Font[] fonts, float fontSize,
+    private float showLine(TestPDPageContentStream cs, PDType0Font[] fonts, float fontSize,
             float x, float y, String[] texts) throws IOException
     {
         cs.beginText();

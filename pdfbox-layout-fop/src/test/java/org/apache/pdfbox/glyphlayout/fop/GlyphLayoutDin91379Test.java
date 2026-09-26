@@ -140,13 +140,13 @@ class GlyphLayoutDin91379Test extends TestBase
 
             PDPage page = new PDPage();
             doc.addPage(page);
-            try (PDPageContentStream cs = new PDPageContentStream(doc, page))
+            try (TestPDPageContentStream cs = new TestPDPageContentStream(doc, page))
             {
                 cs.setGlyphLayoutProcessor(glyphLayoutProcessor);
 
                 float x = page.getBBox().getLowerLeftX() + fontSize;
                 float y = page.getBBox().getUpperRightY() - fontSize;
-                showComposites(cs, font, fontSize, x, y, LATIN_CHARS_DIN_91379);
+                showLine(cs, font, fontSize, x, y, LATIN_CHARS_DIN_91379);
             }
             doc.save(outputPDFFilename);
         }
@@ -177,8 +177,8 @@ class GlyphLayoutDin91379Test extends TestBase
     /*
      * break the text into lines and show them
      */
-    private void showComposites(PDPageContentStream cs, PDType0Font font, float fontSize,
-            float x, float y, String s) throws IOException
+    private void showLine(TestPDPageContentStream cs, PDType0Font font, float fontSize,
+                          float x, float y, String s) throws IOException
     {
 
         s = s.replace("\t", "    ");
@@ -188,7 +188,7 @@ class GlyphLayoutDin91379Test extends TestBase
         {
             if (!line.isEmpty())
             {
-                showCompositesLine(cs, font, fontSize, x, y, line);
+                showOneLine(cs, font, fontSize, x, y, line);
                 y -= fontSize * 1.5f;
             }
         }

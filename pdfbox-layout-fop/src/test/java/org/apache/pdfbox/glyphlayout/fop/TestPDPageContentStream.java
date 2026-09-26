@@ -17,36 +17,71 @@
 
 package org.apache.pdfbox.glyphlayout.fop;
 
+import org.apache.pdfbox.pdmodel.GlyphLayoutProcessorInterface;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.font.PDType0Font;
 
+import java.io.Closeable;
 import java.io.IOException;
 
 /**
  * Test class to record the written text
  */
-public class TestPDPageContentStream extends PDPageContentStream {
+public class TestPDPageContentStream implements Closeable {
 
-    StringBuilder sb = new StringBuilder();
+    private final StringBuilder sb = new StringBuilder();
+    private final PDPageContentStream cs;
 
     public TestPDPageContentStream(PDDocument document, PDPage sourcePage) throws IOException {
-        super(document, sourcePage);
+        cs = new PDPageContentStream(document, sourcePage);
     }
 
-    @Override
     public void showText(String s) throws IOException {
         sb.append(s);
-        super.showText(s);
+        cs.showText(s);
     }
 
-    @Override
     public void  newLineAtOffset(float x, float y) throws IOException {
         sb.append("\n");
-        super.newLineAtOffset(x, y) ;
+        cs.newLineAtOffset(x, y) ;
     }
 
     public String getText() {
         return sb.toString().replaceAll(" +"," ").strip();
+    }
+
+    public void setGlyphLayoutProcessor(GlyphLayoutProcessorInterface glyphLayoutProcessor) {
+        cs.setGlyphLayoutProcessor(glyphLayoutProcessor);
+    }
+
+    @Override
+    public void close() throws IOException {
+        cs.close();
+    }
+
+    public void beginText() throws IOException {
+        cs.beginText();
+    }
+
+    public void setFont(PDType0Font font, float fontSize) throws IOException {
+        cs.setFont(font, fontSize);
+    }
+
+    public void endText() throws IOException {
+        cs.endText();
+    }
+
+    public void moveTo(float x, float y) throws IOException {
+        cs.moveTo(x, y);
+    }
+
+    public void lineTo(float x, float y) throws IOException {
+        cs.lineTo(x, y);
+    }
+
+    public void stroke() throws IOException {
+        cs.stroke();
     }
 }

@@ -33,7 +33,6 @@ import org.junit.jupiter.api.Test;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
 
 /**
@@ -74,12 +73,12 @@ class GlyphLayoutLigaturesAndKerningTest extends TestBase
 
             PDPage page = new PDPage();
             doc.addPage(page);
-            try (PDPageContentStream cs = new PDPageContentStream(doc, page))
+            try (TestPDPageContentStream cs = new TestPDPageContentStream(doc, page))
             {
                 cs.setGlyphLayoutProcessor(glyphLayoutProcessor);
 
                 IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
-                        showComposites(cs, lohitBengaliFont, 1, 0, 0, "123ABC"));
+                        showLines(cs, lohitBengaliFont, 1, 0, 0, "123ABC"));
                 assertEquals("Missing glyph in font 'Lohit Bengali' for the character 'A', codePoint: 65 (U+0041).", ex.getMessage());
 
                 // Ignore the "You did not call endText()" warning, this is because of the premature close
@@ -169,14 +168,14 @@ class GlyphLayoutLigaturesAndKerningTest extends TestBase
 
                 float x = page.getBBox().getLowerLeftX() + fontSize;
                 float y = page.getBBox().getUpperRightY() - fontSize;
-                y = showComposites(cs, firaFont, fontSize, x, y, FIRACODE_STRING);
-                y = showComposites(cs, firaLigFont, fontSize, x, y, FIRACODE_STRING + " (Ligatures)");
-                y = showComposites(cs, dejavuFont, fontSize, x, y, DEJAVU_STRING);
-                y = showComposites(cs, dejavuLigFont, fontSize, x, y, DEJAVU_STRING + " (Ligatures)");
-                y = showComposites(cs, dejavuKernFont, fontSize, x, y, DEJAVU_STRING + " (Kerning)");
-                y = showComposites(cs, dejavuLigKernFont, fontSize, x, y, DEJAVU_STRING + " (Ligatures and kerning)");
-                y = showComposites(cs, thaiFont, fontSize, x, y, THAI_STRING);
-                y = showComposites(cs, lohitBengaliFont, fontSize, x, y - 5, BENGALI_STRING + " (ভারত)");
+                y = showLines(cs, firaFont, fontSize, x, y, FIRACODE_STRING);
+                y = showLines(cs, firaLigFont, fontSize, x, y, FIRACODE_STRING + " (Ligatures)");
+                y = showLines(cs, dejavuFont, fontSize, x, y, DEJAVU_STRING);
+                y = showLines(cs, dejavuLigFont, fontSize, x, y, DEJAVU_STRING + " (Ligatures)");
+                y = showLines(cs, dejavuKernFont, fontSize, x, y, DEJAVU_STRING + " (Kerning)");
+                y = showLines(cs, dejavuLigKernFont, fontSize, x, y, DEJAVU_STRING + " (Ligatures and kerning)");
+                y = showLines(cs, thaiFont, fontSize, x, y, THAI_STRING);
+                y = showLines(cs, lohitBengaliFont, fontSize, x, y - 5, BENGALI_STRING + " (ভারত)");
 
                 // Test code coverage at the end of showTextUni ("adjust the end position")
                 // Visual comparison would fail without that adjustment.
@@ -201,11 +200,11 @@ class GlyphLayoutLigaturesAndKerningTest extends TestBase
                 assertTrue(f4 < f1);
                 assertTrue(f4 < f3);
 
-                cs.moveTo(x, 737);
-                cs.lineTo(x + f3, 737);
+                cs.moveTo(x, 737f);
+                cs.lineTo(x + f3, 737f);
                 cs.stroke();
-                cs.moveTo(x, 676);
-                cs.lineTo(x + f4, 676);
+                cs.moveTo(x, 676f);
+                cs.lineTo(x + f4, 676f);
                 cs.stroke();
                 writtenText = cs.getText();
             }
@@ -228,8 +227,8 @@ class GlyphLayoutLigaturesAndKerningTest extends TestBase
     /**
      * break the text into lines and show them
      */
-    private float showComposites(PDPageContentStream cs, PDType0Font font, float fontSize,
-                                 float x, float y, String s) throws IOException
+    private float showLines(TestPDPageContentStream cs, PDType0Font font, float fontSize,
+                            float x, float y, String s) throws IOException
     {
         s = s.replace("\t", "    ");
         String[] lines = s.split("[\\n]");
@@ -240,7 +239,7 @@ class GlyphLayoutLigaturesAndKerningTest extends TestBase
         {
             if (!line.isEmpty())
             {
-                showCompositesLine(cs, font, fontSize, x, y, line);
+                showOneLine(cs, font, fontSize, x, y, line);
                 y -= height / 1000f * fontSize;
             }
         }
