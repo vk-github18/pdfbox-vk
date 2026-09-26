@@ -143,7 +143,7 @@ public class GlyphLayoutBidiTest extends TestBase
                 printStringAsHex("TEXT1", TEXT1);
                 writtenText = cs.getText();
                 printStringAsHex("writtenText", writtenText);
-                assertEquals(TEXT1, writtenText, "TEXT1 ungleich writtenText");
+                assertEquals(TEXT1, writtenText, "writtenText should equal writtenText");
 
                 //DBG showLine(cs, new PDType0Font[]{ lgcFont, arabicFont, lgcFont }, fontSize, x, y, new String[]{ TEXT2, TEXT3, TEXT4 });
             }
@@ -158,7 +158,7 @@ public class GlyphLayoutBidiTest extends TestBase
             assertEquals(1, doc.getNumberOfPages());
 
             String strippedExtractedText = getAndWriteExtractedText(doc, outputTextFilePath);
-            printStringAsHex("strippedExtractedText", strippedExtractedText); // ActualText looksk good, why not extracted as is?
+            printStringAsHex("strippedExtractedText", strippedExtractedText); // ActualText looks good, why not extracted as is?
 
             assertEquals(writtenText, strippedExtractedText, "Extracted Text should equal the written text");
         }
@@ -166,9 +166,8 @@ public class GlyphLayoutBidiTest extends TestBase
 
     @Test
     public void testUTF16StringToString() {
+        // hex string extracted from ActualText in written PDF file
         String hexString = "FEFF0646062D06460020062706440622064600200641064A00200634064706310020063106450636062706460020003100340034003700200647062C0631064A";
-        assertEquals(utf16HexToString(hexString), "نحن الآن في شهر رمضان 1447 هجري", "String from hex numbers in ActualText should equal written Text");
+        assertEquals("نحن الآن في شهر رمضان 1447 هجري", utf16HexToString(hexString), "String from hex numbers in ActualText should equal written Text");
     }
-
-
 }
