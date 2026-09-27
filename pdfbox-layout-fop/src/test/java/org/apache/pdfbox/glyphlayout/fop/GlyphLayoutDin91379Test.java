@@ -94,26 +94,31 @@ class GlyphLayoutDin91379Test extends TestBase
 
     /**
      * Test, no ActualText
+     *
      * @throws IOException
      * @throws URISyntaxException
      */
     @Test
-    void testGlyphLayoutDin91379NoActualText() throws IOException, URISyntaxException {
+    void testGlyphLayoutDin91379NoActualText() throws IOException, URISyntaxException
+    {
         testGlyphLayoutDin91379(false, "");
     }
 
     /**
      * Test with ActualText
+     *
      * @throws IOException
      * @throws URISyntaxException
      */
     @Test
-    void testGlyphLayoutDin91379UseActualText() throws IOException, URISyntaxException {
+    void testGlyphLayoutDin91379UseActualText() throws IOException, URISyntaxException
+    {
         testGlyphLayoutDin91379(true, "_ActualText");
     }
 
     /**
-     * Test GlyphLayoutProcessorAwt with letters and sequences from DIN 91379
+     * Test GlyphLayoutProcessorFop with letters and sequences from DIN 91379
+     *
      * @param useActualText
      * @throws IOException
      * @throws URISyntaxException
@@ -121,7 +126,8 @@ class GlyphLayoutDin91379Test extends TestBase
     void testGlyphLayoutDin91379(boolean useActualText, String sActualText) throws IOException, URISyntaxException
     {
         AbstractGlyphLayoutProcessor.GlyphLayoutProcessorOptions options = new AbstractGlyphLayoutProcessor.GlyphLayoutProcessorOptions();
-        if (useActualText) {
+        if (useActualText)
+        {
             options.useActualText();
         }
         GlyphLayoutProcessorFop glyphLayoutProcessor = new GlyphLayoutProcessorFop(options);
@@ -188,7 +194,7 @@ class GlyphLayoutDin91379Test extends TestBase
         {
             if (!line.isEmpty())
             {
-                showOneLine(cs, font, fontSize, x, y, line);
+                showCompositesLine(cs, font, fontSize, x, y, line);
                 y -= fontSize * 1.5f;
             }
         }

@@ -45,23 +45,30 @@ public abstract class AbstractGlyphLayoutProcessor implements GlyphLayoutProcess
     /**
      * Options for GlyphLayoutProcessor
      */
-    public static class GlyphLayoutProcessorOptions {
+    public static class GlyphLayoutProcessorOptions
+    {
+
         private boolean useActualText;
 
         /**
-         * Turn usage of ActualText on
+         * Turn usage of ActualText on. This improves text extraction with non-latin fonts but will
+         * make the files slightly larger.
+         *
          * @return this
          */
-        public GlyphLayoutProcessorOptions useActualText() {
+        public GlyphLayoutProcessorOptions useActualText()
+        {
             useActualText = true;
             return this;
         }
 
         /**
          * Returns the state of useActualText
-         * @return true, if ActualText is used, falls otherwise
+         *
+         * @return true if ActualText is used, false otherwise.
          */
-        public boolean getUseActualText() {
+        public boolean getUseActualText()
+        {
             return useActualText;
         }
     }
@@ -93,16 +100,19 @@ public abstract class AbstractGlyphLayoutProcessor implements GlyphLayoutProcess
 
     /**
      * Creates an AbstractGlyphLayoutProcessor with the given options
+     *
      * @param options Options for creation
      */
-    public AbstractGlyphLayoutProcessor(GlyphLayoutProcessorOptions options) {
+    protected AbstractGlyphLayoutProcessor(GlyphLayoutProcessorOptions options)
+    {
         useActualText = options.useActualText;
     }
 
     /**
      * Creates an AbstractGlyphLayoutProcessor with standard options
      */
-    public AbstractGlyphLayoutProcessor() {
+    protected AbstractGlyphLayoutProcessor()
+    {
         useActualText = false;
     }
 
@@ -114,6 +124,7 @@ public abstract class AbstractGlyphLayoutProcessor implements GlyphLayoutProcess
      * @param text text
      * @param bidiLevel Bidi Level
      * @return string width
+     * @throws java.io.IOException
      */
     protected abstract float getStringWidthUni(PDType0Font font, float fontSize, String text, int bidiLevel)
             throws IOException;
@@ -125,7 +136,9 @@ public abstract class AbstractGlyphLayoutProcessor implements GlyphLayoutProcess
      * @param fontSize font size
      * @param text text
      * @return string width
+     * @throws java.io.IOException
      */
+    @Override
     public float getStringWidth(PDType0Font font, float fontSize, String text) throws IOException
     {
         float width = 0f;
@@ -162,6 +175,32 @@ public abstract class AbstractGlyphLayoutProcessor implements GlyphLayoutProcess
     }
 
     /**
+     * Begin a marked content sequence for ActualText
+     *
+     * @param contentStream the content stream
+     * @param text the text to be written as ActualText
+     * @throws IOException If the content stream could not be written
+     */
+    protected void beginMarkedContentForActualText(ContentStreamForGlyphLayoutInterface contentStream, String text) throws IOException
+    {
+        COSDictionary dict = new COSDictionary();
+        dict.setItem(COSName.ACTUAL_TEXT, new COSString(text));
+        PDPropertyList propertyList = PDPropertyList.create(dict);
+        contentStream.beginMarkedContent(COSName.SPAN, propertyList);
+    }
+
+    /**
+     * End a marked content sequence.
+     *
+     * @param contentStream
+     * @throws IOException If the content stream could not be written
+     */
+    protected void endMarkedContent(ContentStreamForGlyphLayoutInterface contentStream) throws IOException
+    {
+        contentStream.endMarkedContent();
+    }
+
+    /**
      * Shows unidirectional text using glyph positioning (if needed)
      *
      * @param contentStream the content stream
@@ -174,7 +213,7 @@ public abstract class AbstractGlyphLayoutProcessor implements GlyphLayoutProcess
      * @throws IllegalArgumentException if glyphs are missing
      */
     protected abstract void showTextUni(ContentStreamForGlyphLayoutInterface contentStream, PDType0Font font, float fontSize,
-                               String text, int bidiLevel) throws IOException;
+            String text, int bidiLevel) throws IOException;
 
     /**
      * Shows a text using glyph positioning (if needed)
@@ -187,24 +226,28 @@ public abstract class AbstractGlyphLayoutProcessor implements GlyphLayoutProcess
      * @throws IOException if an I/O exception occurs
      * @throws IllegalArgumentException if glyphs are missing
      */
+    @Override
     public void showText(ContentStreamForGlyphLayoutInterface contentStream, PDType0Font font, float fontSize, String text)
             throws IOException
     {
-        if (useActualText) {
+        if (useActualText)
+        {
             beginMarkedContentForActualText(contentStream, text);
         }
         List<TextAndBidiLevel> textAndBidiLevels = doBidiSplittingAndReordering(text);
-        for (TextAndBidiLevel textAndBidiLevel:  textAndBidiLevels)
+        for (TextAndBidiLevel textAndBidiLevel : textAndBidiLevels)
         {
             showTextUni(contentStream, font, fontSize, textAndBidiLevel.getText(), textAndBidiLevel.getBidiLevel());
         }
-        if (useActualText) {
+        if (useActualText)
+        {
             endMarkedContent(contentStream);
         }
     }
 
     /**
      * Do Bidi splitting and reordering
+     *
      * @param text text
      * @return list of texts and bidi levels
      */

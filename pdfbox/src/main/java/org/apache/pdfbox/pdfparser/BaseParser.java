@@ -672,4 +672,77 @@ public abstract class BaseParser
         return buffer;
     }
 
+    /**
+     * Seek to a position in the underlying data source.
+     * 
+     * @param position The position to seek to.
+     * @throws IOException If there is an error while seeking.
+     */
+    protected void seek(long position) throws IOException
+    {
+        source.seek(position);
+    }
+
+    /**
+     * Read a single byte of data.
+     *
+     * @return The byte of data that is being read.
+     *
+     * @throws IOException If there is an error while reading the data.
+     */
+    protected int read() throws IOException
+    {
+        return source.read();
+    }
+
+    /**
+     * Read a buffer of data.
+     *
+     * @param b The buffer to write the data to.
+     * @param offset Offset into the buffer to start writing.
+     * @param length The amount of data to attempt to read.
+     * @return The number of bytes that were actually read.
+     * @throws IOException If there was an error while reading the data.
+     */
+    protected int read(byte[] b, int offset, int length) throws IOException
+    {
+        return source.read(b, offset, length);
+    }
+
+    /**
+     * This will peek at the next byte.
+     *
+     * @return The next byte on the stream, leaving it as available to read.
+     *
+     * @throws IOException If there is an error reading the next byte.
+     */
+    protected int peek() throws IOException
+    {
+        return source.peek();
+    }
+
+    /**
+     * The total number of bytes that are available.
+     * 
+     * @return The number of bytes available.
+     *
+     * @throws IOException If there is an IO error while determining the length of the data stream.
+     */
+    protected long length() throws IOException
+    {
+        return source.length();
+    }
+
+    /**
+     * Returns offset of next byte to be returned by a read method.
+     * 
+     * @return offset of next byte which will be returned with next {@link #read()} (if no more bytes are left it
+     * returns a value &gt;= length of source)
+     * 
+     * @throws IOException If there was an error while getting the current position
+     */
+    protected long getPosition() throws IOException
+    {
+        return source.getPosition();
+    }
 }
