@@ -18,18 +18,17 @@ package org.apache.pdfbox.glyphlayout.awt;
 
 import java.awt.FontFormatException;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Objects;
 
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.rendering.PDFRenderer;
+import org.apache.pdfbox.text.PDFTextStripper;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -40,7 +39,7 @@ import static org.junit.jupiter.api.Assertions.fail;
  */
 class TestBase
 {
-    void checkRenderIdent(String outputName) throws IOException, URISyntaxException
+    static void checkRenderIdent(String outputName) throws IOException, URISyntaxException
     {
         BufferedImage expectedImage;
         BufferedImage actualImage;
@@ -71,12 +70,60 @@ class TestBase
                 int p2 = actualImage.getRGB(x, y);
                 if (p1 != p2)
                 {
-                    String errMsg = String.format("(%d,%d) expected: <%08X> but was: <%08X>; ", 
-                            x, y, p1, p2);
+                    String errMsg = String.format("%s\t(%d,%d) expected: <%08X> but was: <%08X>; ",
+                            outputName, x, y, p1, p2);
                     fail(errMsg);
                 }
             }
         }
+    }
+
+    static String utf16HexToString(String hexString) {
+        byte[] bytes = new byte[hexString.length() / 2];
+        for (int i = 0; i < hexString.length(); i += 2) {
+            String h = hexString.substring(i, i + 2);
+            int ib = Integer.parseInt(h, 16);
+            bytes[i / 2] = (byte) ib;
+        }
+        return new String(bytes, StandardCharsets.UTF_16);
+    }
+
+    static void printStringAsHex(String name, String value) {
+        byte[] bytes = value.getBytes(StandardCharsets.UTF_16);
+        int i=0;
+        System.out.println("printStringAsHex: " + name);
+        for(int b: bytes) {
+            System.out.printf("%02x", b);
+            if(i++%2==1) {
+                System.out.print(" ");
+            }
+        }
+        System.out.println();
+    }
+
+
+    static String getAndWriteExtractedText(PDDocument doc, String outputTextFilename, boolean reorder) throws IOException {
+        PDFTextStripper stripper = new PDFTextStripper();
+        stripper.setReorder(reorder);
+        String extractedText = stripper.getText(doc);
+        String strippedExtractedText = extractedText.replaceAll(" +"," ")
+                .replaceAll(" *\\n", "\n")
+                .strip();
+
+        try (OutputStream os = new FileOutputStream(outputTextFilename))
+        {
+            os.write (0xEF);
+            os.write (0xBB);
+            os.write (0xBF);
+
+            try (Writer writer = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8)))
+            {
+                //TODO compare this output with the input, like in TextStripper test
+                // Not yet correct as of 4.7.2026
+                writer.write(extractedText);
+            }
+        }
+        return strippedExtractedText;
     }
 
     /**
@@ -103,8 +150,8 @@ class TestBase
     /*
      * show one line
      */
-    void showCompositesLine(PDPageContentStream cs, PDType0Font font, float fontSize,
-            float x, float y, String line) throws IOException
+    static void showOneLine(TestPDPageContentStream cs, PDType0Font font, float fontSize,
+                            float x, float y, String line) throws IOException
     {
         cs.beginText();
         cs.setFont(font, fontSize);

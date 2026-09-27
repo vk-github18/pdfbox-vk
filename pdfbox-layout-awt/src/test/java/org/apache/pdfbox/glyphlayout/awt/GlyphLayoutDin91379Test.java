@@ -17,14 +17,9 @@
 package org.apache.pdfbox.glyphlayout.awt;
 
 import java.awt.FontFormatException;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 
@@ -37,7 +32,6 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
-import org.apache.pdfbox.text.PDFTextStripper;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
@@ -140,6 +134,7 @@ class GlyphLayoutDin91379Test extends TestBase
         String outputTextFilename = "target/" + outputBaseName + ".txt";
 
         float fontSize = 12.0f;
+        String writtenText;
 
         try (PDDocument doc = new PDDocument())
         {
@@ -150,15 +145,16 @@ class GlyphLayoutDin91379Test extends TestBase
 
             PDPage page = new PDPage();
             doc.addPage(page);
-            try (PDPageContentStream cs = new PDPageContentStream(doc, page))
+            try (TestPDPageContentStream cs = new TestPDPageContentStream(doc, page))
             {
                 cs.setGlyphLayoutProcessor(glyphLayoutProcessor);
 
                 float x = page.getBBox().getLowerLeftX() + fontSize;
                 float y = page.getBBox().getUpperRightY() - fontSize;
-                showComposites(cs, font, fontSize, x, y, LATIN_CHARS_DIN_91379);
+                showLines(cs, font, fontSize, x, y, LATIN_CHARS_DIN_91379);
+                writtenText = cs.getText();
             }
-            doc.save(outputPDFFilename);
+            doc.save(outputPDFFilePath);
         }
         checkRenderIdent(outputBaseName + ".pdf");
 
@@ -188,10 +184,9 @@ class GlyphLayoutDin91379Test extends TestBase
     /*
      * break the text into lines and show them
      */
-    private void showComposites(PDPageContentStream cs, PDType0Font font, float fontSize,
-            float x, float y, String s) throws IOException
+    private void showLines(TestPDPageContentStream cs, PDType0Font font, float fontSize,
+                           float x, float y, String s) throws IOException
     {
-
         s = s.replace("\t", "    ");
         String[] lines = s.split("[\n]");
 

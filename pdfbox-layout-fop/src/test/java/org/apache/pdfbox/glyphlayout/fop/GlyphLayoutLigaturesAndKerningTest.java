@@ -17,6 +17,21 @@
 
 package org.apache.pdfbox.glyphlayout.fop;
 
+import java.awt.*;
+import java.io.*;
+import java.net.URISyntaxException;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.pdmodel.AbstractGlyphLayoutProcessor;
+import org.junit.jupiter.api.Test;
+
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.font.PDType0Font;
+
 /**
  * Examples for ligatures and kerning
  * See <a href="https://issues.apache.org/jira/browse/PDFBOX-4951">PDFBOX-4951</a>
@@ -26,19 +41,6 @@ package org.apache.pdfbox.glyphlayout.fop;
  *
  * @author Volker Kunert
  */
-
-import java.io.IOException;
-import java.net.URISyntaxException;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import org.junit.jupiter.api.Test;
-
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.PDPageContentStream;
-import org.apache.pdfbox.pdmodel.font.PDType0Font;
-
 class GlyphLayoutLigaturesAndKerningTest extends TestBase
 {
     static final String FIRACODE_STRING = "!= == === >= <=";
@@ -65,32 +67,64 @@ class GlyphLayoutLigaturesAndKerningTest extends TestBase
 
             PDPage page = new PDPage();
             doc.addPage(page);
-            try (PDPageContentStream cs = new PDPageContentStream(doc, page))
+            try (TestPDPageContentStream cs = new TestPDPageContentStream(doc, page))
             {
                 cs.setGlyphLayoutProcessor(glyphLayoutProcessor);
 
                 IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> 
-                        showComposites(cs, lohitBengaliFont, 1, 0, 0, "123ABC"));
+                        showLines(cs, lohitBengaliFont, 1, 0, 0, "123ABC"));
                 assertEquals("Missing glyph in font 'Lohit-Bengali' for the character 'A', codePoint: 65 (U+0041).", ex.getMessage());
 
                 // Ignore the "You did not call endText()" warning, this is because of the premature close
             }
         }
     }
-  
-    @Test
-    void testLigaturesAndKerning() throws IOException, URISyntaxException
-    {
-        GlyphLayoutProcessorFop glyphLayoutProcessor = new GlyphLayoutProcessorFop();
 
-        String outputName = "GlyphLayoutLigaturesAndKerning.pdf";
-        String outputFilename = "target/" + outputName;
+    /**
+     * Test, no ActualText
+     * @throws IOException
+     * @throws URISyntaxException
+     */
+    @Test
+    void testLigaturesAndKerningNoActualText() throws IOException, URISyntaxException {
+        testLigaturesAndKerning(false, "");
+    }
+
+    /**
+     * Test with ActualText
+     * @throws IOException
+     * @throws URISyntaxException
+     */
+    @Test
+    void testLigaturesAndKerningUseActualText() throws IOException, URISyntaxException {
+        testLigaturesAndKerning(true, "_ActualText");
+    }
+
+    /**
+     * Test ligatures and kerning
+     * @param useActualText
+     * @throws IOException
+     * @throws URISyntaxException
+     */
+    void testLigaturesAndKerning(boolean useActualText, String sActualText) throws IOException, URISyntaxException
+    {
+        AbstractGlyphLayoutProcessor.GlyphLayoutProcessorOptions options = new AbstractGlyphLayoutProcessor.GlyphLayoutProcessorOptions();
+        if (useActualText) {
+            options.useActualText();
+        }
+        GlyphLayoutProcessorFop glyphLayoutProcessor = new GlyphLayoutProcessorFop(options);
+
+        String outputBaseName = "GlyphLayoutLigaturesAndKerning" + sActualText;
+        String outputPDFFilePath = "target/" + outputBaseName + ".pdf";
+        String outputTextFilePath = "target/" + outputBaseName + ".txt";
+
         String firaPath = "/ttf/FiraCode-Regular.ttf";
         String dejavuPath = "/ttf/DejaVuSans.ttf"; // ligatures not in Liberation nor in Arimo
         String thaiPath = "/ttf/NotoSansThai-Regular.ttf";
         String lohitBengaliPath = "/ttf/Lohit-Bengali.ttf";
 
         float fontSize = 12.0f;
+        String writtenText;
 
         try (PDDocument doc = new PDDocument())
         {
@@ -111,20 +145,20 @@ class GlyphLayoutLigaturesAndKerningTest extends TestBase
             
             PDPage page = new PDPage();
             doc.addPage(page);
-            try (PDPageContentStream cs = new PDPageContentStream(doc, page))
+            try (TestPDPageContentStream cs = new TestPDPageContentStream(doc, page))
             {
                 cs.setGlyphLayoutProcessor(glyphLayoutProcessor);
                 
                 float x = page.getBBox().getLowerLeftX() + fontSize;
                 float y = page.getBBox().getUpperRightY() - fontSize;
-                y = showComposites(cs, firaFont, fontSize, x, y, FIRACODE_STRING);
-                y = showComposites(cs, firaLigFont, fontSize, x, y, FIRACODE_STRING + " (Ligatures)");
-                y = showComposites(cs, dejavuFont, fontSize, x, y, DEJAVU_STRING);
-                y = showComposites(cs, dejavuLigFont, fontSize, x, y, DEJAVU_STRING + " (Ligatures)");
-                y = showComposites(cs, dejavuKernFont, fontSize, x, y, DEJAVU_STRING + " (Kerning)");
-                y = showComposites(cs, dejavuLigKernFont, fontSize, x, y, DEJAVU_STRING + " (Ligatures and kerning)");
-                y = showComposites(cs, thaiFont, fontSize, x, y, THAI_STRING);
-                y = showComposites(cs, lohitBengaliFont, fontSize, x, y - 5, BENGALI_STRING + " (ভারত)");
+                y = showLines(cs, firaFont, fontSize, x, y, FIRACODE_STRING);
+                y = showLines(cs, firaLigFont, fontSize, x, y, FIRACODE_STRING + " (Ligatures)");
+                y = showLines(cs, dejavuFont, fontSize, x, y, DEJAVU_STRING);
+                y = showLines(cs, dejavuLigFont, fontSize, x, y, DEJAVU_STRING + " (Ligatures)");
+                y = showLines(cs, dejavuKernFont, fontSize, x, y, DEJAVU_STRING + " (Kerning)");
+                y = showLines(cs, dejavuLigKernFont, fontSize, x, y, DEJAVU_STRING + " (Ligatures and kerning)");
+                y = showLines(cs, thaiFont, fontSize, x, y, THAI_STRING);
+                y = showLines(cs, lohitBengaliFont, fontSize, x, y - 5, BENGALI_STRING + " (ভারত)");
 
                 // from the related awt test. Unclear if useful in the future if FOP ever supports bengali
                 // and we get access to it.
@@ -135,21 +169,35 @@ class GlyphLayoutLigaturesAndKerningTest extends TestBase
                 cs.showText(" ");
                 cs.showText(BENGALI_STRING2);
                 cs.endText();
+                writtenText = cs.getText();
             }
-            doc.save(outputFilename);
+            doc.save(outputPDFFilePath);
         }
-        checkRenderIdent(outputName);
+
+        checkRenderIdent(outputBaseName + ".pdf");
+
+        // Extract text
+        try (PDDocument doc = Loader.loadPDF(new File(outputPDFFilePath)))
+        {
+            assertEquals(1, doc.getNumberOfPages());
+
+            String strippedExtractedText = getAndWriteExtractedText(doc, outputTextFilePath);
+
+            assertEquals(writtenText, strippedExtractedText, "Extracted Text should equal the written text");
+
+            assertEquals(writtenText, strippedExtractedText, "Extracted Text should equal the written text");
+        }
     }
 
     /**
      * break the text into lines and show them
      */
-    private float showComposites(PDPageContentStream cs, PDType0Font font, float fontSize,
+    private float showLines(TestPDPageContentStream cs, PDType0Font font, float fontSize,
             float x, float y, String s) throws IOException
     {
 
         s = s.replace("\t", "    ");
-        String[] lines = s.split("[\\n]");
+        String[] lines = s.split("\\n");
 
         float height = font.getBoundingBox().getHeight();
 
@@ -157,7 +205,7 @@ class GlyphLayoutLigaturesAndKerningTest extends TestBase
         {
             if (!line.isEmpty())
             {
-                showCompositesLine(cs, font, fontSize, x, y, line);
+                showOneLine(cs, font, fontSize, x, y, line);
                 y -= height / 1000f * fontSize;
             }
         }

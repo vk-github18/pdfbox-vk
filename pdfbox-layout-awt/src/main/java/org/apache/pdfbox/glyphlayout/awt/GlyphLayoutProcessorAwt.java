@@ -69,7 +69,9 @@ public class GlyphLayoutProcessorAwt extends AbstractGlyphLayoutProcessor implem
     {
     }
 
-    /**
+
+
+        /**
      * Checks if glyphs needed for text are missing in awtFont
      *
      * @param text text to be checked
