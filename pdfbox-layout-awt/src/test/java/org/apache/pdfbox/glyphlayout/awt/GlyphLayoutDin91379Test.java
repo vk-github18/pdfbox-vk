@@ -17,15 +17,14 @@
 package org.apache.pdfbox.glyphlayout.awt;
 
 import java.awt.FontFormatException;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 
 import org.apache.pdfbox.Loader;
 
 import org.apache.pdfbox.pdmodel.AbstractGlyphLayoutProcessor;
+import org.apache.pdfbox.text.PDFTextStripper;
 import org.junit.jupiter.api.Test;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -154,7 +153,7 @@ class GlyphLayoutDin91379Test extends TestBase
                 showLines(cs, font, fontSize, x, y, LATIN_CHARS_DIN_91379);
                 writtenText = cs.getText();
             }
-            doc.save(outputPDFFilePath);
+            doc.save(outputPDFFilename);
         }
         checkRenderIdent(outputBaseName + ".pdf");
 
@@ -194,7 +193,7 @@ class GlyphLayoutDin91379Test extends TestBase
         {
             if (!line.isEmpty())
             {
-                showCompositesLine(cs, font, fontSize, x, y, line);
+                showOneLine(cs, font, fontSize, x, y, line);
                 y -= fontSize * 1.5f;
             }
         }

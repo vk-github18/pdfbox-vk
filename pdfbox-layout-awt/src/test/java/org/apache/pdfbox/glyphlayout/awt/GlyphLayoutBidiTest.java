@@ -157,7 +157,7 @@ public class GlyphLayoutBidiTest extends TestBase
             assertEquals(1, doc.getNumberOfPages());
 
             boolean reorder = !useActualText; // ActualText must not be reordered
-            String strippedExtractedText = getAndWriteExtractedText(doc, outputTextFilePath, reorder);
+            String strippedExtractedText = getAndWriteExtractedText(doc, outputTextFilePath, true);
             printStringAsHex("strippedExtractedText", strippedExtractedText);
 
             assertEquals(writtenText, strippedExtractedText, "Extracted Text should equal the written text");

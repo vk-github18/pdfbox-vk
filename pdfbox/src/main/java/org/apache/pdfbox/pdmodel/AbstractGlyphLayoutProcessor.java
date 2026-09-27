@@ -168,30 +168,6 @@ public abstract class AbstractGlyphLayoutProcessor implements GlyphLayoutProcess
     /**
      * End a marked content sequence.
      *
-     * @throws IOException If the content stream could not be written
-     */
-    protected  void endMarkedContent(ContentStreamForGlyphLayoutInterface contentStream) throws IOException {
-        contentStream.endMarkedContent();
-    }
-
-    /**
-     * Begin a marked content sequence for ActualText
-     *
-     * @param contentStream the content stream
-     * @param text the text to be written as ActualText
-     * @throws IOException If the content stream could not be written
-     */
-    protected void beginMarkedContentForActualText(ContentStreamForGlyphLayoutInterface contentStream, String text) throws IOException
-    {
-        COSDictionary dict = new COSDictionary();
-        dict.setItem(COSName.ACTUAL_TEXT, new COSString(text));
-        PDPropertyList propertyList = PDPropertyList.create(dict);
-        contentStream.beginMarkedContent(COSName.SPAN, propertyList);
-    }
-
-    /**
-     * End a marked content sequence.
-     *
      * @param contentStream
      * @throws IOException If the content stream could not be written
      */

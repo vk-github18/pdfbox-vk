@@ -194,7 +194,7 @@ class GlyphLayoutDin91379Test extends TestBase
         {
             if (!line.isEmpty())
             {
-                showCompositesLine(cs, font, fontSize, x, y, line);
+                showOneLine(cs, font, fontSize, x, y, line);
                 y -= fontSize * 1.5f;
             }
         }
