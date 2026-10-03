@@ -33,6 +33,7 @@ import org.apache.pdfbox.pdmodel.GlyphsAndPositions;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
+import org.apache.pdfbox.util.Matrix;
 
 
 /**
@@ -143,8 +144,9 @@ public class GlyphLayoutProcessorFop extends AbstractGlyphLayoutProcessor implem
      * @return string width
      */
     @Override
-    protected float getStringWidthUni(PDType0Font font, float fontSize, String text, int bidiLevel) throws IOException
+    protected float getStringWidthUni(Matrix matrix, PDType0Font font, float fontSize, String text, int bidiLevel) throws IOException
     {
+        // TODO Matrix is ignored
         TextAndGpa textAndGpa = computeGlyphsAndPositions(font, fontSize, text, bidiLevel);
         // PDType0Font.getStringWidth returns glyph widths in 1000-units. Convert to user space using font matrix and fontSize
         float raw = font.getStringWidth(textAndGpa.getText());
@@ -251,12 +253,14 @@ public class GlyphLayoutProcessorFop extends AbstractGlyphLayoutProcessor implem
      * @throws IllegalArgumentException if glyphs are missing
      */
     @Override
-    protected void showTextUni(ContentStreamForGlyphLayoutInterface contentStream, PDType0Font font, float fontSize,
-            String text, int bidiLevel) throws IOException
+    protected void showTextUni(ContentStreamForGlyphLayoutInterface contentStream, Matrix matrix, PDType0Font font, float fontSize,
+                               String text, int bidiLevel) throws IOException
     {
 
         Objects.requireNonNull(text, "Text must be set");
         Objects.requireNonNull(contentStream, "contentStream must be set");
+
+        // TODO handle Matrix
 
         TextAndGpa textAndGpa = computeGlyphsAndPositions(font, fontSize, text, bidiLevel);
         text = textAndGpa.getText();

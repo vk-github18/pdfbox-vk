@@ -36,6 +36,7 @@ import org.apache.pdfbox.pdmodel.GlyphsAndPositions;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
+import org.apache.pdfbox.util.Matrix;
 
 
 /**
@@ -186,14 +187,14 @@ public class GlyphLayoutProcessorAwt extends AbstractGlyphLayoutProcessor implem
      *
      * @return an awt GlyphVector
      */
-    protected GlyphVector computeGlyphVector(PDType0Font font, float fontSize, String text, int bidiLevel)
+    protected GlyphVector computeGlyphVector(Matrix matrix, PDType0Font font, float fontSize, String text, int bidiLevel)
     {
         Objects.requireNonNull(font, "Font must be set");
         Objects.requireNonNull(text, "Text must be set");
 
         char[] chars = text.toCharArray();
 
-        FontRenderContext fontRenderContext = new FontRenderContext(new AffineTransform(), false, true);
+        FontRenderContext fontRenderContext = new FontRenderContext(matrix.createAffineTransform(), false, true);
         // use fractional metrics
 
         int localFlags = bidiLevel % 2 == 0 ? Font.LAYOUT_LEFT_TO_RIGHT : Font.LAYOUT_RIGHT_TO_LEFT;
@@ -214,9 +215,9 @@ public class GlyphLayoutProcessorAwt extends AbstractGlyphLayoutProcessor implem
      * @return string width
      */
     @Override
-    protected float getStringWidthUni(PDType0Font font, float fontSize, String text, int bidiLevel)
+    protected float getStringWidthUni(Matrix matrix, PDType0Font font, float fontSize, String text, int bidiLevel)
     {
-        GlyphVector glyphVector = computeGlyphVector(font, fontSize, text, bidiLevel);
+        GlyphVector glyphVector = computeGlyphVector(matrix, font, fontSize, text, bidiLevel);
         Rectangle2D rect = glyphVector.getLogicalBounds();
         return (float) rect.getWidth();
     }
@@ -233,12 +234,13 @@ public class GlyphLayoutProcessorAwt extends AbstractGlyphLayoutProcessor implem
      * @throws IllegalArgumentException if glyphs are missing
      */
     @Override
-    protected void showTextUni(ContentStreamForGlyphLayoutInterface contentStream, PDType0Font font, float fontSize, String text, int bidiLevel) throws IOException
+    protected void showTextUni(ContentStreamForGlyphLayoutInterface contentStream,
+                               Matrix matrix, PDType0Font font, float fontSize, String text, int bidiLevel) throws IOException
     {
         Objects.requireNonNull(text, "Text must be set");
         Objects.requireNonNull(contentStream, "contentStream must be set");
 
-        GlyphVector glyphVector = computeGlyphVector(font, fontSize, text, bidiLevel);
+        GlyphVector glyphVector = computeGlyphVector(matrix, font, fontSize, text, bidiLevel);
 
         // check for adjustment not needed:
         // glyphVector.getLayoutFlags() & FLAG_HAS_POSITION_ADJUSTMENTS is always true

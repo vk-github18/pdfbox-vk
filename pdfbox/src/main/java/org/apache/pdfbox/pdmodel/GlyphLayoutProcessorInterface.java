@@ -18,6 +18,7 @@ package org.apache.pdfbox.pdmodel;
 
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
+import org.apache.pdfbox.util.Matrix;
 
 import java.io.IOException;
 
@@ -47,6 +48,16 @@ public interface GlyphLayoutProcessorInterface
      */
     float getStringWidth(PDType0Font font, float fontSize, String text) throws IOException;
 
+    /**
+     * Compute the width for a text
+     * @param matrix text matrix
+     * @param font to be used
+     * @param fontSize font size
+     * @param text text
+     * @return string width
+     */
+    float getStringWidth(Matrix matrix, PDType0Font font, float fontSize, String text) throws IOException;
+
 
     /**
      * Shows a text using glyph positioning (if needed)
@@ -58,5 +69,5 @@ public interface GlyphLayoutProcessorInterface
      * @throws IOException if an I/O exception occurs
      * @throws IllegalArgumentException if glyphs are missing
      */
-    void showText(ContentStreamForGlyphLayoutInterface contentStream, PDType0Font font, float fontSize, String text) throws IOException;
+    void showText(ContentStreamForGlyphLayoutInterface contentStream, Matrix matrix, PDType0Font font, float fontSize, String text) throws IOException;
 }

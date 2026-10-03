@@ -899,6 +899,7 @@ public class PDFTextStripper extends LegacyPDFStreamEngine
             if (firstActualTextPosition)
             {
                 text.setUnicode(actualText);
+                text.setActualText(true);
                 firstActualTextPosition = false;
             }
             else
@@ -2124,7 +2125,8 @@ public class PDFTextStripper extends LegacyPDFStreamEngine
         else
         {
             TextPosition text = item.getTextPosition();
-            lineBuilder.append(text.getVisuallyOrderedUnicode());
+            lineBuilder.append(text.isActualText() ? text.getUnicode() : 
+                    text.getVisuallyOrderedUnicode());
             wordPositions.add(text);
         }
         return lineBuilder;

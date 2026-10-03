@@ -22,7 +22,9 @@ import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.cos.COSString;
 import org.apache.pdfbox.pdmodel.documentinterchange.markedcontent.PDPropertyList;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
+import org.apache.pdfbox.util.Matrix;
 
+import java.awt.geom.AffineTransform;
 import java.io.IOException;
 import java.text.Bidi;
 import java.util.ArrayList;
@@ -126,7 +128,7 @@ public abstract class AbstractGlyphLayoutProcessor implements GlyphLayoutProcess
      * @return string width
      * @throws java.io.IOException
      */
-    protected abstract float getStringWidthUni(PDType0Font font, float fontSize, String text, int bidiLevel)
+    protected abstract float getStringWidthUni(Matrix matrix, PDType0Font font, float fontSize, String text, int bidiLevel)
             throws IOException;
 
 
@@ -139,13 +141,28 @@ public abstract class AbstractGlyphLayoutProcessor implements GlyphLayoutProcess
      * @throws java.io.IOException
      */
     @Override
-    public float getStringWidth(PDType0Font font, float fontSize, String text) throws IOException
+    public float getStringWidth(PDType0Font font, float fontSize, String text) throws IOException {
+        return getStringWidth(new Matrix(), font, fontSize, text);
+    }
+
+
+    /**
+     * Compute the width for a text
+     * @param matrix text matrix
+     * @param font to be used
+     * @param fontSize font size
+     * @param text text
+     * @return string width
+     * @throws java.io.IOException
+     */
+    @Override
+    public float getStringWidth(Matrix matrix, PDType0Font font, float fontSize, String text) throws IOException
     {
         float width = 0f;
         List<TextAndBidiLevel> textAndBidiLevels = doBidiSplittingAndReordering(text);
         for (TextAndBidiLevel textAndBidiLevel:  textAndBidiLevels)
         {
-            width += getStringWidthUni(font, fontSize, textAndBidiLevel.getText(), textAndBidiLevel.getBidiLevel());
+            width += getStringWidthUni(matrix, font, fontSize, textAndBidiLevel.getText(), textAndBidiLevel.getBidiLevel());
         }
         return width;
     }
@@ -188,8 +205,9 @@ public abstract class AbstractGlyphLayoutProcessor implements GlyphLayoutProcess
      * @throws IOException if an I/O exception occurs
      * @throws IllegalArgumentException if glyphs are missing
      */
-    protected abstract void showTextUni(ContentStreamForGlyphLayoutInterface contentStream, PDType0Font font, float fontSize,
-            String text, int bidiLevel) throws IOException;
+    protected abstract void showTextUni(ContentStreamForGlyphLayoutInterface contentStream,
+                                        Matrix matrix, PDType0Font font, float fontSize,
+                                        String text, int bidiLevel) throws IOException;
 
     /**
      * Shows a text using glyph positioning (if needed)
@@ -203,7 +221,8 @@ public abstract class AbstractGlyphLayoutProcessor implements GlyphLayoutProcess
      * @throws IllegalArgumentException if glyphs are missing
      */
     @Override
-    public void showText(ContentStreamForGlyphLayoutInterface contentStream, PDType0Font font, float fontSize, String text)
+    public void showText(ContentStreamForGlyphLayoutInterface contentStream,
+                         Matrix matrix, PDType0Font font, float fontSize, String text)
             throws IOException
     {
         if (useActualText)
@@ -213,7 +232,7 @@ public abstract class AbstractGlyphLayoutProcessor implements GlyphLayoutProcess
         List<TextAndBidiLevel> textAndBidiLevels = doBidiSplittingAndReordering(text);
         for (TextAndBidiLevel textAndBidiLevel : textAndBidiLevels)
         {
-            showTextUni(contentStream, font, fontSize, textAndBidiLevel.getText(), textAndBidiLevel.getBidiLevel());
+            showTextUni(contentStream, matrix, font, fontSize, textAndBidiLevel.getText(), textAndBidiLevel.getBidiLevel());
         }
         if (useActualText)
         {

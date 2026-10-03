@@ -63,6 +63,7 @@ public final class TextPosition
     private float[] widths;
     private String unicode;
     private float direction = -1;
+    private boolean actualText;
 
     /**
      * Constructor.
@@ -174,6 +175,20 @@ public final class TextPosition
     void setUnicode(String unicode)
     {
         this.unicode = unicode;
+    }
+
+    /**
+     * Returns true if this TextPosition's unicode content came from /ActualText.
+     * @return true if from ActualText
+     */
+    public boolean isActualText()
+    {
+        return actualText;
+    }
+
+    public void setActualText(boolean actualText)
+    {
+        this.actualText = actualText;
     }
 
     /**

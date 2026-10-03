@@ -91,6 +91,8 @@ abstract class PDAbstractContentStream implements ContentStreamForGlyphLayoutInt
     protected boolean inTextMode = false;
     protected final Deque<PDFont> fontStack = new ArrayDeque<>();
     protected final Deque<Float> fontSizeStack = new ArrayDeque<>();
+    protected final Deque<Matrix> matrixStack = new ArrayDeque<>();
+    private final Matrix IDENTITY_MATRIX = new Matrix();
 
     protected final Deque<PDColorSpace> nonStrokingColorSpaceStack = new ArrayDeque<>();
     protected final Deque<PDColorSpace> strokingColorSpaceStack = new ArrayDeque<>();
@@ -350,7 +352,9 @@ abstract class PDAbstractContentStream implements ContentStreamForGlyphLayoutInt
         if (glyphLayoutProcessor != null && glyphLayoutProcessor.supportsFont(font))
         {
             float fontSize = fontSizeStack.peek();
-            glyphLayoutProcessor.showText(this, (PDType0Font) font, fontSize, text);
+            Matrix matrix = matrixStack.isEmpty() ? IDENTITY_MATRIX : matrixStack.peek();
+            glyphLayoutProcessor.showText(this,
+                    matrix, (PDType0Font) font, fontSize, text);
         }
         else
         {
@@ -534,6 +538,17 @@ abstract class PDAbstractContentStream implements ContentStreamForGlyphLayoutInt
         {
             throw new IllegalStateException("Error: must call beginText() before setTextMatrix");
         }
+        if (matrixStack.isEmpty())
+        {
+            matrixStack.add(matrix);
+        }
+        else
+        {
+            matrixStack.pop();
+            matrixStack.push(matrix);
+        }
+
+
         writeAffineTransform(matrix.createAffineTransform());
         writeOperator(OperatorName.SET_MATRIX);
     }
