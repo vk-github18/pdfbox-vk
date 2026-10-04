@@ -194,6 +194,7 @@ public class GlyphLayoutProcessorAwt extends AbstractGlyphLayoutProcessor implem
 
         char[] chars = text.toCharArray();
 
+        //TODOFontRenderContext fontRenderContext = new FontRenderContext(new AffineTransform(), false, true);
         FontRenderContext fontRenderContext = new FontRenderContext(matrix.createAffineTransform(), false, true);
         // use fractional metrics
 
