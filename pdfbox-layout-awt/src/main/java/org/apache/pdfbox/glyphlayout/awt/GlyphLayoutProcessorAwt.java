@@ -38,7 +38,6 @@ import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.util.Matrix;
 
-
 /**
  * Processor for glyph layout
  * <p>
@@ -194,8 +193,8 @@ public class GlyphLayoutProcessorAwt extends AbstractGlyphLayoutProcessor implem
 
         char[] chars = text.toCharArray();
 
-        //TODOFontRenderContext fontRenderContext = new FontRenderContext(new AffineTransform(), false, true);
-        FontRenderContext fontRenderContext = new FontRenderContext(matrix.createAffineTransform(), false, true);
+        FontRenderContext fontRenderContext = new FontRenderContext(new AffineTransform(), false, true);
+        FontRenderContext fontRenderContextMatrix = new FontRenderContext(matrix.createAffineTransform(), false, true);
         // use fractional metrics
 
         int localFlags = bidiLevel % 2 == 0 ? Font.LAYOUT_LEFT_TO_RIGHT : Font.LAYOUT_RIGHT_TO_LEFT;
@@ -204,7 +203,10 @@ public class GlyphLayoutProcessorAwt extends AbstractGlyphLayoutProcessor implem
 
         checkMissingGlyphs(text, awtFont);
 
-        return awtFont.layoutGlyphVector(fontRenderContext, chars, 0, chars.length, localFlags);
+        GlyphVector glyphVector = awtFont.layoutGlyphVector(fontRenderContext, chars, 0, chars.length, localFlags);
+        GlyphVector glyphVectorMatrix = awtFont.layoutGlyphVector(fontRenderContextMatrix, chars, 0, chars.length, localFlags);
+
+        return glyphVector;
     }
 
     /**
