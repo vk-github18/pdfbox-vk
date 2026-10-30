@@ -235,21 +235,24 @@ class AppearanceGeneratorHelper
 
             PDAppearanceEntry appearance = appearanceDict.getNormalAppearance();
             // TODO support appearances other than "normal"
-                
+
+            PDAppearanceCharacteristicsDictionary appearanceCharacteristics =
+                    widget.getAppearanceCharacteristics();
+            int widgetRotation = resolveRotation(appearanceCharacteristics);
+            PDRectangle newBBox = computeBBox(widget, widgetRotation);
             PDAppearanceStream appearanceStream;
-            if (isValidAppearanceStream(appearance))
+            // We're using the existing appearance if possible (since 2013 or even earlier)
+            // However, except for the file from PDFBOX-2586 we could ignore it
+            if (isValidAppearanceStream(appearance, newBBox))
             {
                 appearanceStream = appearance.getAppearanceStream();
             }
             else
             {
-                appearanceStream = prepareNormalAppearanceStream(widget);
+                appearanceStream = prepareNormalAppearanceStream(newBBox, widgetRotation);
                 appearanceDict.setNormalAppearance(appearanceStream);
-                // TODO support appearances other than "normal"
             }
-            PDAppearanceCharacteristicsDictionary appearanceCharacteristics =
-                    widget.getAppearanceCharacteristics();
-                
+
             /*
              * Adobe Acrobat always recreates the complete appearance stream if there is an appearance characteristics
              * entry (the widget dictionaries MK entry). In addition if there is no content yet also create the appearance
@@ -262,8 +265,7 @@ class AppearanceGeneratorHelper
             }
                 
             setAppearanceContent(widget, appearanceStream);
-            
-            
+
             // restore the field level appearance
             defaultAppearance =  acroFormAppearance;
         }
@@ -292,7 +294,7 @@ class AppearanceGeneratorHelper
         return apValue;
     }
 
-    private static boolean isValidAppearanceStream(PDAppearanceEntry appearance)
+    private static boolean isValidAppearanceStream(PDAppearanceEntry appearance, PDRectangle newBBox)
     {
         if (appearance == null)
         {
@@ -307,24 +309,20 @@ class AppearanceGeneratorHelper
         {
             return false;
         }
+        if (Math.abs(newBBox.getWidth() - bbox.getWidth()) > 1 || Math.abs(newBBox.getHeight() - bbox.getHeight()) > 1)
+        {
+            // PDFBOX-6223: don't like it if bbox and rectangle are of very different sizes
+            return false;
+        }
         return Math.abs(bbox.getWidth()) > 0 && Math.abs(bbox.getHeight()) > 0;
     }
 
-    private PDAppearanceStream prepareNormalAppearanceStream(PDAnnotationWidget widget)
+    private PDAppearanceStream prepareNormalAppearanceStream(PDRectangle bbox, int widgetRotation)
     {
         PDAppearanceStream appearanceStream = new PDAppearanceStream(field.getAcroForm().getDocument());
 
-        // Calculate the entries for the bounding box and the transformation matrix
-        // settings for the appearance stream
-        int rotation = resolveRotation(widget);
-        PDRectangle rect = widget.getRectangle();
-        Matrix matrix = Matrix.getRotateInstance(Math.toRadians(rotation), 0, 0);
-        Point2D.Float point2D = matrix.transformPoint(rect.getWidth(), rect.getHeight());
-
-        PDRectangle bbox = new PDRectangle(Math.abs((float) point2D.getX()), Math.abs((float) point2D.getY()));
         appearanceStream.setBBox(bbox);
-
-        AffineTransform at = calculateMatrix(bbox, rotation);
+        AffineTransform at = calculateMatrix(bbox, widgetRotation);
         if (!at.isIdentity())
         {
             appearanceStream.setMatrix(at);
@@ -333,7 +331,19 @@ class AppearanceGeneratorHelper
         appearanceStream.setResources(new PDResources());
         return appearanceStream;
     }
-    
+
+    private static PDRectangle computeBBox(PDAnnotationWidget widget, int widgetRotation) throws IOException
+    {
+        PDRectangle rect = widget.getRectangle();
+        if (rect == null)
+        {
+            throw new IOException("Missing rectangle");
+        }
+        Matrix matrix = Matrix.getRotateInstance(Math.toRadians(widgetRotation), 0, 0);
+        Point2D.Float point2D = matrix.transformPoint(rect.getWidth(), rect.getHeight());
+        return new PDRectangle(Math.abs((float) point2D.getX()), Math.abs((float) point2D.getY()));
+    }
+
     private PDDefaultAppearanceString getWidgetDefaultAppearanceString(PDAnnotationWidget widget) throws IOException
     {
         COSString da = (COSString) widget.getCOSObject().getDictionaryObject(COSName.DA);
@@ -341,9 +351,8 @@ class AppearanceGeneratorHelper
         return new PDDefaultAppearanceString(da, dr);
     }
     
-    private int resolveRotation(PDAnnotationWidget widget)
+    private static int resolveRotation(PDAppearanceCharacteristicsDictionary characteristicsDictionary)
     {
-        PDAppearanceCharacteristicsDictionary  characteristicsDictionary = widget.getAppearanceCharacteristics();
         if (characteristicsDictionary != null)
         {
             // 0 is the default value if the R key doesn't exist
@@ -426,7 +435,7 @@ class AppearanceGeneratorHelper
                 }
             }
             
-            writeToStream(output.toByteArray(), appearanceStream);
+            writeToStream(output, appearanceStream);
 
         }
     }
@@ -475,7 +484,7 @@ class AppearanceGeneratorHelper
                 // append contents after EMC
                 writer.writeTokens(tokens.subList(emcIndex, tokens.size()));
             }
-            writeToStream(output.toByteArray(), appearanceStream);
+            writeToStream(output, appearanceStream);
         }
     }
     
@@ -878,11 +887,11 @@ class AppearanceGeneratorHelper
      *
      * @throws IOException If there is an error writing to the stream
      */
-    private void writeToStream(byte[] data, PDAppearanceStream appearanceStream) throws IOException
+    private void writeToStream(ByteArrayOutputStream baos, PDAppearanceStream appearanceStream) throws IOException
     {
-        try (OutputStream out = appearanceStream.getCOSObject().createOutputStream())
+        try (OutputStream os = appearanceStream.getCOSObject().createOutputStream())
         {
-            out.write(data);
+            baos.writeTo(os);
         }
     }
 

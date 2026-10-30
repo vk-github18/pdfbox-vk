@@ -46,6 +46,7 @@ import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.cos.COSNumber;
+import org.apache.pdfbox.cos.COSString;
 import org.apache.pdfbox.pdfwriter.COSWriter;
 import org.apache.pdfbox.pdmodel.documentinterchange.markedcontent.PDPropertyList;
 import org.apache.pdfbox.pdmodel.font.PDFont;
@@ -78,6 +79,10 @@ abstract class PDAbstractContentStream implements ContentStreamForGlyphLayoutInt
 {
     private static final Log LOG = LogFactory.getLog(PDAbstractContentStream.class);
 
+    private static final byte[] ASCII_SPACE = new byte[] { 0x20 };
+    private static final byte[] ASCII_LEFT_SQUARE_BRACKET = new byte[] { 0x5B };
+    private static final byte[] ASCII_RIGHT_SQUARE_BRACKET_SPACE = new byte[] { 0x5D, 0x20 };
+
     protected final PDDocument document; // may be null
 
     protected final OutputStream outputStream;
@@ -94,7 +99,7 @@ abstract class PDAbstractContentStream implements ContentStreamForGlyphLayoutInt
     private final NumberFormat formatDecimal = NumberFormat.getNumberInstance(Locale.US);
     private final byte[] formatBuffer = new byte[32];
 
-    private final Map<PDType0Font, GsubWorker> gsubWorkers = new HashMap<>();
+    private final Map<PDType0Font, GsubWorker> gsubWorkerMap = new HashMap<>();
     private final GsubWorkerFactory gsubWorkerFactory = new GsubWorkerFactory();
     private GlyphLayoutProcessorInterface glyphLayoutProcessor;
 
@@ -127,7 +132,7 @@ abstract class PDAbstractContentStream implements ContentStreamForGlyphLayoutInt
 
     /**
      * Sets the maximum number of digits allowed for fractional numbers.
-     * 
+     *
      * @see NumberFormat#setMaximumFractionDigits(int)
      * @param fractionDigitsNumber the maximum number of digits allowed for fractional numbers
      */
@@ -169,7 +174,7 @@ abstract class PDAbstractContentStream implements ContentStreamForGlyphLayoutInt
         writeOperator(OperatorName.END_TEXT);
         inTextMode = false;
     }
-    
+
     /**
      * Set the font and font size to draw text with.
      *
@@ -224,9 +229,8 @@ abstract class PDAbstractContentStream implements ContentStreamForGlyphLayoutInt
             GsubData gsubData = type0Font.getGsubData();
             if (gsubData != GsubData.NO_DATA_FOUND)
             {
-                GsubWorker gsubWorker = gsubWorkerFactory.getGsubWorker(type0Font.getCmapLookup(),
-                        gsubData);
-                gsubWorkers.put((PDType0Font) font, gsubWorker);
+                gsubWorkerMap.computeIfAbsent(type0Font,
+                        f -> gsubWorkerFactory.getGsubWorker(f.getCmapLookup(), gsubData));
             }
             else
             {
@@ -257,7 +261,17 @@ abstract class PDAbstractContentStream implements ContentStreamForGlyphLayoutInt
      */
     public void showTextWithPositioning(Object[] textWithPositioningArray) throws IOException
     {
-        write("[");
+        if (!inTextMode)
+        {
+            throw new IllegalStateException("Must call beginText() before showTextWithPositioning()");
+        }
+
+        if (fontStack.isEmpty())
+        {
+            throw new IllegalStateException("Must call setFont() before showTextWithPositioning()");
+        }
+
+        writeBytes(ASCII_LEFT_SQUARE_BRACKET);
         for (Object obj : textWithPositioningArray)
         {
             if (obj instanceof String)
@@ -273,20 +287,22 @@ abstract class PDAbstractContentStream implements ContentStreamForGlyphLayoutInt
                 throw new IllegalArgumentException("Argument must consist of array of Float and String types");
             }
         }
-        write("] ");
+        writeBytes(ASCII_RIGHT_SQUARE_BRACKET_SPACE);
         writeOperator(OperatorName.SHOW_TEXT_ADJUSTED);
     }
 
     /**
-     * Show the given glyphs at the specified positions
+     * Show the given glyphs at the specified positions. This method is meant to be called from
+     * within a GlyphLayoutProcessorInterface implementation and only for PDType0Font.
      *
      * @param glyphsAndPositions List of glyphs and positions
      * @throws IOException if an IO error occurs
+     * @throws IllegalStateException if the current font isn't a PDType0Font.
      */
     @Override
     public void showGlyphsWithPositioning(GlyphsAndPositions glyphsAndPositions) throws IOException
     {
-        write("[");
+        writeBytes(ASCII_LEFT_SQUARE_BRACKET);
 
         for (Object obj : glyphsAndPositions.toArray())
         {
@@ -308,7 +324,7 @@ abstract class PDAbstractContentStream implements ContentStreamForGlyphLayoutInt
                 throw new IllegalArgumentException("Argument must consist of array of Float and GlyphsAndPositions.GlyphSubList types, not " + obj.getClass().getName());
             }
         }
-        write("] ");
+        writeBytes(ASCII_RIGHT_SQUARE_BRACKET_SPACE);
         writeOperator(OperatorName.SHOW_TEXT_ADJUSTED);
     }
 
@@ -342,7 +358,7 @@ abstract class PDAbstractContentStream implements ContentStreamForGlyphLayoutInt
         else
         {
             showTextInternal(text);
-            write(" ");
+            writeBytes(ASCII_SPACE);
             writeOperator(OperatorName.SHOW_TEXT);
         }
     }
@@ -352,12 +368,13 @@ abstract class PDAbstractContentStream implements ContentStreamForGlyphLayoutInt
      *
      * @param glyphCodes Array of glyph codes of the content font
      * @throws IOException if an I/O exception occurs
+     * @throws IllegalStateException if the current font isn't a PDType0Font.
      */
     @Override
     public void showGlyphCodes(int[] glyphCodes) throws IOException
     {
         writeTextPDType0Font(glyphCodes);
-        write(" ");
+        writeBytes(ASCII_SPACE);
         writeOperator(OperatorName.SHOW_TEXT);
     }
 
@@ -367,22 +384,22 @@ abstract class PDAbstractContentStream implements ContentStreamForGlyphLayoutInt
      * @param glyphCodes The glyph codes to write
      *
      * @throws IOException in case of I/O error
+     * @throws IllegalStateException if the current font isn't a PDType0Font.
      */
     protected void writeTextPDType0Font(int[] glyphCodes) throws IOException
     {
         if (!inTextMode)
         {
-            throw new IllegalStateException("Must call beginText() before showText()");
+            throw new IllegalStateException("Must call beginText() before writeTextPDType0Font()");
         }
         if (fontStack.isEmpty())
         {
-            throw new IllegalStateException("Must call setFont() before showText()");
+            throw new IllegalStateException("Must call setFont() before writeTextPDType0Font()");
         }
         PDFont font = fontStack.peek();
         if (!(font instanceof PDType0Font))
         {
             throw new IllegalStateException("Must be called with current font instance of PDType0Font");
-
         }
         PDType0Font pdType0Font = (PDType0Font) font;
 
@@ -413,21 +430,11 @@ abstract class PDAbstractContentStream implements ContentStreamForGlyphLayoutInt
      * Outputs a string using the correct encoding and subsetting as required.
      *
      * @param text The Unicode text to show.
-     * 
+     *
      * @throws IOException If an io exception occurs.
      */
     protected void showTextInternal(String text) throws IOException
     {
-        if (!inTextMode)
-        {
-            throw new IllegalStateException("Must call beginText() before showText()");
-        }
-
-        if (fontStack.isEmpty())
-        {
-            throw new IllegalStateException("Must call setFont() before showText()");
-        }
-
         PDFont font = fontStack.peek();
 
         // complex text layout
@@ -435,7 +442,7 @@ abstract class PDAbstractContentStream implements ContentStreamForGlyphLayoutInt
         if (font instanceof PDType0Font)
         {
 
-            GsubWorker gsubWorker = gsubWorkers.get(font);
+            GsubWorker gsubWorker = gsubWorkerMap.get(font);
             if (gsubWorker != null)
             {
                 PDType0Font type0Font = (PDType0Font) font;
@@ -1170,7 +1177,7 @@ abstract class PDAbstractContentStream implements ContentStreamForGlyphLayoutInt
 
     /**
      * Stroke the path.
-     * 
+     *
      * @throws IOException If the content stream could not be written
      * @throws IllegalStateException If the method was called within a text block.
      */
@@ -1185,7 +1192,7 @@ abstract class PDAbstractContentStream implements ContentStreamForGlyphLayoutInt
 
     /**
      * Close and stroke the path.
-     * 
+     *
      * @throws IOException If the content stream could not be written
      * @throws IllegalStateException If the method was called within a text block.
      */
@@ -1342,7 +1349,7 @@ abstract class PDAbstractContentStream implements ContentStreamForGlyphLayoutInt
             throw new IllegalStateException("Error: clip is not allowed within a text block.");
         }
         writeOperator(OperatorName.CLIP_NON_ZERO);
-        
+
         // end path without filling or stroking
         writeOperator(OperatorName.ENDPATH);
     }
@@ -1360,7 +1367,7 @@ abstract class PDAbstractContentStream implements ContentStreamForGlyphLayoutInt
             throw new IllegalStateException("Error: clipEvenOdd is not allowed within a text block.");
         }
         writeOperator(OperatorName.CLIP_EVEN_ODD);
-        
+
         // end path without filling or stroking
         writeOperator(OperatorName.ENDPATH);
     }
@@ -1426,12 +1433,12 @@ abstract class PDAbstractContentStream implements ContentStreamForGlyphLayoutInt
      */
     public void setLineDashPattern(float[] pattern, float phase) throws IOException
     {
-        write("[");
+        writeBytes(ASCII_LEFT_SQUARE_BRACKET);
         for (float value : pattern)
         {
             writeOperand(value);
         }
-        write("] ");
+        writeBytes(ASCII_RIGHT_SQUARE_BRACKET_SPACE);
         writeOperand(phase);
         writeOperator(OperatorName.SET_LINE_DASHPATTERN);
     }
@@ -1485,11 +1492,16 @@ abstract class PDAbstractContentStream implements ContentStreamForGlyphLayoutInt
 
     /**
      * Begin a marked content sequence with a reference to an entry in the page resources' Properties dictionary.
+     * <p>
+     * Except for conditions visible in the source code, this will create a resource entry, which
+     * may seem inefficient if there's only one element in the property list. If this bothers you,
+     * bring it up in the PDFBox users mailing list.
      *
      * @param tag the tag to be added to the content stream
      * @param propertyList property list to be added to the content stream
      * @throws IOException If the content stream could not be written
      */
+    @Override
     public void beginMarkedContent(COSName tag, PDPropertyList propertyList) throws IOException
     {
         writeOperand(tag);
@@ -1499,6 +1511,19 @@ abstract class PDAbstractContentStream implements ContentStreamForGlyphLayoutInt
         {
             // PDFBOX-5890: use simplified notation if there's only an MCID
             write("<</MCID " + dict.getInt(COSName.MCID) + ">> ");
+        }
+        else if (dict.containsKey(COSName.ACTUAL_TEXT) && dict.size() == 1)
+        {
+            // PDFBOX-6256: use simplified notation
+            COSBase base = dict.getItem(COSName.ACTUAL_TEXT);
+            if (base instanceof COSString)
+            {
+                write("<</" + COSName.ACTUAL_TEXT.getName() + " <" + ((COSString) base).toHexString() + ">>> ");
+            }
+            else
+            {
+                throw new IllegalArgumentException("ActualText parameter must be a string, but is: " + base);
+            }
         }
         else
         {
@@ -1546,7 +1571,7 @@ abstract class PDAbstractContentStream implements ContentStreamForGlyphLayoutInt
 
     /**
      * Set an extended graphics state.
-     * 
+     *
      * @param state The extended graphics state to be added to the content stream
      * @throws IOException If the content stream could not be written.
      */
@@ -1560,7 +1585,7 @@ abstract class PDAbstractContentStream implements ContentStreamForGlyphLayoutInt
      * Write a comment line.
      *
      * @param comment the comment to be added to the content stream
-     * 
+     *
      * @throws IOException If the content stream could not be written.
      * @throws IllegalArgumentException If the comment contains a newline. This is not allowed, because the next line
      * could be ordinary PDF content.
@@ -1578,9 +1603,9 @@ abstract class PDAbstractContentStream implements ContentStreamForGlyphLayoutInt
 
     /**
      * Writes a real number to the content stream.
-     * 
+     *
      * @param real the real number to be added to the content stream
-     * 
+     *
      * @throws IOException If the underlying stream has a problem being written to.
      * @throws IllegalArgumentException if the parameter is not a finite number
      */
@@ -1606,7 +1631,7 @@ abstract class PDAbstractContentStream implements ContentStreamForGlyphLayoutInt
 
     /**
      * Writes an integer number to the content stream.
-     * 
+     *
      * @param integer the integer to be added to the content stream
      * @throws IOException If the underlying stream has a problem being written to.
      */
@@ -1618,7 +1643,7 @@ abstract class PDAbstractContentStream implements ContentStreamForGlyphLayoutInt
 
     /**
      * Writes a COSName to the content stream.
-     * 
+     *
      * @param name the name to be added to the content stream
      * @throws IOException If the underlying stream has a problem being written to.
      */
@@ -1629,20 +1654,20 @@ abstract class PDAbstractContentStream implements ContentStreamForGlyphLayoutInt
     }
 
     /**
-     * Writes a string to the content stream as ASCII.
-     * 
-     * @param text the text to be added to the content stream followed by a newline
+     * Writes an operator to the content stream as ASCII.
+     *
+     * @param operatorname the name of the operator to be added to the content stream followed by a newline
      * @throws IOException If the underlying stream has a problem being written to.
      */
-    protected void writeOperator(String text) throws IOException
+    protected void writeOperator(String operatorname) throws IOException
     {
-        write(text);
+        writeBytes(OperatorName.getNameAsBytes(operatorname));
         writeLine();
     }
 
     /**
      * Writes a string to the content stream as ASCII.
-     * 
+     *
      * @param text the text to be added to the content stream
      * @throws IOException If the underlying stream has a problem being written to.
      */
@@ -1653,7 +1678,7 @@ abstract class PDAbstractContentStream implements ContentStreamForGlyphLayoutInt
 
     /**
      * Writes a newline to the content stream as ASCII.
-     * 
+     *
      * @throws IOException If the underlying stream has a problem being written to.
      */
     protected void writeLine() throws IOException
@@ -1663,7 +1688,7 @@ abstract class PDAbstractContentStream implements ContentStreamForGlyphLayoutInt
 
     /**
      * Writes binary data to the content stream.
-     * 
+     *
      * @param data as byte formatted to be added to the content stream
      * @throws IOException If the underlying stream has a problem being written to.
      */
@@ -1674,7 +1699,7 @@ abstract class PDAbstractContentStream implements ContentStreamForGlyphLayoutInt
 
     /**
      * Writes an AffineTransform to the content stream as an array.
-     * 
+     *
      * @param transform AffineTransform to be added to the content stream
      * @throws IOException If the underlying stream has a problem being written to.
      */

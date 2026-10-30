@@ -21,6 +21,12 @@ import org.apache.pdfbox.pdmodel.font.PDType0Font;
 
 import java.io.IOException;
 
+/**
+ * Interface for glyph layout that is independent of a specific implementation so that more
+ * implementations can be tried in the future.
+ *
+ * @author Volker Kunert
+ */
 public interface GlyphLayoutProcessorInterface
 {
 
@@ -31,6 +37,16 @@ public interface GlyphLayoutProcessorInterface
      * @return true if glyph layout is supported for this font and this font is a PDType0Font
      */
     boolean supportsFont(PDFont font);
+
+    /**
+     * Compute the width for a text
+     * @param font to be used
+     * @param fontSize font size
+     * @param text text
+     * @return string width
+     */
+    float getStringWidth(PDType0Font font, float fontSize, String text) throws IOException;
+
 
     /**
      * Shows a text using glyph positioning (if needed)

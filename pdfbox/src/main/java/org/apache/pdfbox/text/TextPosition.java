@@ -63,6 +63,7 @@ public final class TextPosition
     private float[] widths;
     private String unicode;
     private float direction = -1;
+    private boolean fromActualText;
 
     /**
      * Constructor.
@@ -182,7 +183,7 @@ public final class TextPosition
      * looking from left to right). This is important for Arabic/Hebrew where several
      * unicode characters can be composed in one glyph with logical order (the order
      * in which it would be normally typed from right to left).
-     * 
+     *
      * @return The string on the screen in visual order.
      */
     public String getVisuallyOrderedUnicode()
@@ -250,7 +251,7 @@ public final class TextPosition
             float b = textMatrix.getShearY();
             float c = textMatrix.getShearX();
             float d = textMatrix.getScaleX();
-    
+
             // 12 0   left to right
             // 0 12
             if (a > 0 && Math.abs(b) < d && Math.abs(c) < a && d > 0)
@@ -683,15 +684,15 @@ public final class TextPosition
         {
             if (i >= widths.length)
             {
-                LOG.info("diacritic " + diacritic.getUnicode() + " on ligature " + unicode + 
+                LOG.info("diacritic " + diacritic.getUnicode() + " on ligature " + unicode +
                         " is not supported yet and is ignored (PDFBOX-2831)");
                 break;
             }
             float currCharXEnd = currCharXStart + widths[i];
 
-             // this is the case where there is an overlap of the diacritic character with the
-             // current character and the previous character. If no previous character, just append
-             // the diacritic after the current one
+            // this is the case where there is an overlap of the diacritic character with the
+            // current character and the previous character. If no previous character, just append
+            // the diacritic after the current one
             if (diacXStart < currCharXStart && diacXEnd <= currCharXEnd)
             {
                 if (i == 0)
@@ -818,7 +819,7 @@ public final class TextPosition
         }
         if ("ー".equals(text))
         {
-            // PDFBOX-3833: ー is not a real diacritic like ¨ or ˆ, it just changes the 
+            // PDFBOX-3833: ー is not a real diacritic like ¨ or ˆ, it just changes the
             // pronunciation of the previous sound, and is printed after the previous glyph
             // http://www.japanesewithanime.com/2017/04/prolonged-sound-mark.html
             // Ignoring it as diacritic avoids trouble if it slightly overlaps with the next glyph.
@@ -826,10 +827,10 @@ public final class TextPosition
         }
         int type = Character.getType(text.charAt(0));
         return type == Character.NON_SPACING_MARK ||
-               type == Character.MODIFIER_SYMBOL ||
-               type == Character.MODIFIER_LETTER;
+                type == Character.MODIFIER_SYMBOL ||
+                type == Character.MODIFIER_LETTER;
 
-  }
+    }
 
     /**
      * Show the string data for this text position.
@@ -895,6 +896,26 @@ public final class TextPosition
     public float getPageWidth()
     {
         return pageWidth;
+    }
+
+    /**
+     * Return if this is created form ActualText
+     *
+     * @return true, if this is created from ActualText
+     */
+    public boolean isFromActualText()
+    {
+        return fromActualText;
+    }
+
+    /**
+     * Set the parameter fromActualText to true, if the text is created from ActualText
+     *
+     * @param fromActualText, true if the text is created from ActualText
+     */
+    public void setFromActualText(boolean fromActualText)
+    {
+        this.fromActualText = fromActualText;
     }
 
     @Override
@@ -964,7 +985,7 @@ public final class TextPosition
             return false;
         }
         return Objects.equals(font, that.font);
-        
+
         // If changing this method, do not compare mutable fields (PDFBOX-4701)        
     }
 
