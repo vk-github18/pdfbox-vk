@@ -69,6 +69,7 @@ public final class COSName extends COSBase implements Comparable<COSName>
     public static final COSName ALT = new COSName("Alt");
     public static final COSName ALPHA = new COSName("Alpha");
     public static final COSName ALTERNATE = new COSName("Alternate");
+    public static final COSName AN = getPDFName("AN");
     public static final COSName ANNOT = new COSName("Annot");
     public static final COSName ANNOTS = new COSName("Annots");
     public static final COSName ANTI_ALIAS = new COSName("AntiAlias");
@@ -448,6 +449,7 @@ public final class COSName extends COSBase implements Comparable<COSName>
     public static final COSName ON = new COSName("ON");
     public static final COSName OP = new COSName("OP");
     public static final COSName OP_NS = new COSName("op");
+    public static final COSName OPEN = new COSName("Open");
     public static final COSName OPEN_ACTION = new COSName("OpenAction");
     public static final COSName OPEN_TYPE = new COSName("OpenType");
     public static final COSName OPM = new COSName("OPM");
@@ -559,6 +561,7 @@ public final class COSName extends COSBase implements Comparable<COSName>
     public static final COSName SORT = new COSName("Sort");
     public static final COSName SOUND = new COSName("Sound");
     public static final COSName SPLIT = new COSName("Split");
+    public static final COSName SPAN = new COSName("Span");
     public static final COSName SS = new COSName("SS");
     public static final COSName ST = new COSName("St");
     public static final COSName STANDARD_ENCODING = new COSName("StandardEncoding");
