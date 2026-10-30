@@ -41,6 +41,8 @@
     <module>pdfbox</module>
     <module>pdfbox-layout-awt</module>
     <module>pdfbox-layout-fop</module>
+    <module>preflight</module>
+    <module>preflight-app</module>
     <module>debugger</module>
     <module>tools</module>
     <module>app</module>
