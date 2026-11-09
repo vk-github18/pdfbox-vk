@@ -48,7 +48,7 @@ import org.apache.pdfbox.pdmodel.font.PDType0Font;
  */
 public class GlyphLayoutProcessorAwt extends AbstractGlyphLayoutProcessor implements GlyphLayoutProcessorInterface
 {
-    private final GlyphLayoutFontLoaderAwt glyphLayoutFontLoaderAwt = new GlyphLayoutFontLoaderAwt();
+    private final GlyphLayoutFontLoaderAwt glyphLayoutFontLoaderAwt = createGlyphLayoutFontLoaderAwt();
 
     /**
      * Constructs a GlyphLayoutProcessorFop with options
@@ -66,6 +66,14 @@ public class GlyphLayoutProcessorAwt extends AbstractGlyphLayoutProcessor implem
      */
     public GlyphLayoutProcessorAwt()
     {
+    }
+
+    /**
+     * Create GlyphLayoutFontLoaderAwt
+     * can be overridden by subclasses
+     */
+    protected GlyphLayoutFontLoaderAwt createGlyphLayoutFontLoaderAwt() {
+        return new GlyphLayoutFontLoaderAwt();
     }
 
     /**
