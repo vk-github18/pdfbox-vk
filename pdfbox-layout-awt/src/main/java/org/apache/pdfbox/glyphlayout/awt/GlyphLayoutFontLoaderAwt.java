@@ -103,9 +103,9 @@ public class GlyphLayoutFontLoaderAwt
      * can be overridden by subclasses
      */
     protected PDType0Font loadPDType0Font(PDDocument pdDocument, byte[] fontBytes,
-                                          boolean embedSubset, boolean vertical)
+                                          boolean embedSubset)
             throws IOException {
-        return PDType0Font.load(pdDocument, new RandomAccessReadBuffer(fontBytes), embedSubset, vertical);
+        return PDType0Font.load(pdDocument, new RandomAccessReadBuffer(fontBytes), embedSubset, false);
     }
 
     /**
@@ -127,7 +127,7 @@ public class GlyphLayoutFontLoaderAwt
 
         // Copy font stream into memory to read it twice for creation of PDType0Font and AWT Font
         byte[] fontBytes = IOUtils.toByteArray(inputStream);
-        PDType0Font pdType0Font = loadPDType0Font(pdDocument, fontBytes, embedSubset, false);
+        PDType0Font pdType0Font = loadPDType0Font(pdDocument, fontBytes, embedSubset);
         try (ByteArrayInputStream bais = new ByteArrayInputStream(fontBytes))
         {
             loadAwtFont(pdType0Font, bais, fontOptions);
